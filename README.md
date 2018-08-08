@@ -6,4 +6,6 @@ This is in the very early stages. It is designed to provide a means of having on
 The 'Federator' is a uses a modular concept where a 'backend' is coded to make the calls to the native sensor API and present the results in a consistent output format
 
 
-![GitHub Logo](/Docs/sensorFederatorPNG.PNG)
+
+## Conceptual Diagram
+![sensorFederator](/Docs/sensorFederatorPNG.PNG)
