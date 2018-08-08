@@ -1,0 +1,45 @@
+
+Out of date range tests
+
+sensors <- sensorInfo[sensorInfo$SiteID == 'Cosmoz_2' & sensorInfo$DataType == 'Rainfall' & sensorInfo$Backend=='Cosmoz', ]
+sensors <- sensors[order(sensors$UpperDepth),]
+d <- getSensorData(streams=sensors[1,],  aggPeriod=timeSteps$none, startDate='27-05-2010', endDate='28-05-2010', numrecs = 10000)
+
+
+sensors <- sensorInfo[sensorInfo$SiteID == 'DAFWA_BR' & sensorInfo$DataType == 'Rainfall', ]
+sensors <- sensors[order(sensors$UpperDepth),]
+d <- getSensorData(streams=sensors[1,],  aggPeriod=timeSteps$none, startDate='22-08-2000', endDate='28-08-2000')
+
+
+sensors <- sensorInfo[sensorInfo$SiteID ==  '15314' & sensorInfo$DataType=='Rainfall', ]
+d <- getSensorData(streams=sensors[1,],  aggPeriod=timeSteps$none , startDate='27-05-2000', endDate='29-05-2000')
+
+sensors <- sensorInfo[sensorInfo$SiteID == 'op12251' & sensorInfo$DataType == 'Soil-Moisture', ]
+sensors <- sensors[order(sensors$UpperDepth),]
+d <- getSensorData(streams=sensors[1:1,], aggPeriod=timeSteps$days, startDate='09-05-2010', endDate='11-05-2010' )
+
+sensors <- sensorInfo[sensorInfo$SiteID == 'cerdi.sfs.5278.platform' & sensorInfo$DataType == 'Soil-Moisture', ]
+sensors <- sensors[order(sensors$UpperDepth),]
+d <- getSensorData(streams=sensors[1:2,],aggPeriod = timeSteps$none, startDate='09-04-2010', endDate='11-04-2010' )
+expect_equal(length(d), 27)
+
+
+
+
+Login tests
+# # public login
+# df <- getAuthorisedSensors2(usr='Public', pwd='Public')
+# vcd(df)
+#
+# # Admin login
+# df <- getAuthorisedSensors2(usr='Admin', pwd='JWEJTOhwCuH8sQEKD2ft4KAPg')
+# vcd(df)
+#
+# # specific user login
+# df <- getAuthorisedSensors2(usr='davidmaxfreebairn@me.com', pwd='zsXKfRbsbp0oxc7YtiUGemvs8EXq')
+# vcd(df)
+#
+#
+# # specific user login
+# df <- getAuthorisedSensors2(usr='Matthew.Stenson@csiro.au', pwd='RvL97TdIx4vA7TKaKcgVk3D6f0s')
+# vcd(df)

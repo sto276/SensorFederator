@@ -60,8 +60,12 @@ getURLAsync_Cosmoz <- function(x){
 
 
 cosmoz_GenerateTimeSeries <- function(response, retType = 'df'){
-  
+
+
   tsj <- fromJSON(response, flatten=T)
+  if(tsj$count == 0){
+      (stop('No records were returned for the specified query'))
+    }
   dts <- str_replace(tsj$observations[,1], 'T', ' ')
   dts2 <- str_replace(dts, 'Z', '')
   vals <- tsj$observations[,2]
@@ -78,3 +82,5 @@ cosmoz_GenerateTimeSeries <- function(response, retType = 'df'){
     stop(cat(retType, 'is an unkown data return type. Options are', paste(knownAdconReturnTypes, collapse=',' )), call. = F)
   }
 }
+
+

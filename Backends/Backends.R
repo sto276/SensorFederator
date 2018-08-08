@@ -52,14 +52,14 @@ getSensorData <- function(streams, startDate = NULL, endDate = NULL, aggPeriod=t
 
               if(nrow(dfTSm) > 0){
                   outts <- to.TS(dfTSm)
-    
-    
+
+
                   if(aggPeriod != 'none'){
                     outTS <- resampleTS(outts, aggPeriod, FeatureAggTypes[streams$DataType][1])
                   }else{
                      outTS <- outts
                    }
-    
+
                   if(outFormat=='nestedTS'){
                        ndf <- makeNestedDF(outTS, streams, startDate, endDate, aggPeriod)
                        return(ndf)
@@ -89,7 +89,7 @@ getSensorData <- function(streams, startDate = NULL, endDate = NULL, aggPeriod=t
 
 
 getSensorData_DAFWA <- function(streams, startDate = NULL, endDate = NULL, aggPeriod=timeSteps$day, numrecs=maxRecs ){
-  
+
   if(is.null(endDate))
   {
     dnowYMD <- format(Sys.time(), "%Y-%m-%d")
@@ -99,7 +99,7 @@ getSensorData_DAFWA <- function(streams, startDate = NULL, endDate = NULL, aggPe
     ed <- paste0(edBits[[1]][3], '-', edBits[[1]][2], '-', edBits[[1]][1] )
     isoEDate <- ed
   }
-  
+
   if(is.null(startDate))
   {
     if(is.null(endDate))
@@ -115,19 +115,25 @@ getSensorData_DAFWA <- function(streams, startDate = NULL, endDate = NULL, aggPe
     sd <- paste0(sdBits[[1]][3], '-', sdBits[[1]][2], '-', sdBits[[1]][1])
     isoSDate <- paste0(sd)
   }
-  
+
  # https://api.agric.wa.gov.au/v1/weatherstations/dailysummary.json?station_code=', 'BR', '&fromDate=2016-01-01&toDate=2016-09-29&api_key=CCB3F85A64008C6AC1789E4F.apikey
-  
+
   siteid <- str_remove(streams$SiteID, paste0(streams$Provider, '_'))
   urls <- paste0( streams$SeverName, '/weatherstations/dailysummary.json?station_code=',siteid, '&fromDate=',isoSDate,'&toDate=',isoEDate ,'&api_key=CCB3F85A64008C6AC1789E4F.apikey')
-  dataStreamsDF <- synchronise(async_map( urls,  getURLAsync_DAFWA, .limit = asyncThreadNum ))
-  
+
+  tryCatch({
+    dataStreamsDF <- synchronise(async_map( urls,  getURLAsync_DAFWA, .limit = asyncThreadNum ))
+    }, error = function(e)
+    {
+      stop('No records were returned for the specified query. Most likely there is no data available in the date range specified - (async processing error)')
+    })
+
   return(dataStreamsDF)
 }
 
-    
-    getSensorData_Cosmoz <- function(streams, startDate = NULL, endDate = NULL, aggPeriod=timeSteps$day, numrecs=maxRecs ){
-      
+
+getSensorData_Cosmoz <- function(streams, startDate = NULL, endDate = NULL, aggPeriod=timeSteps$day, numrecs=maxRecs ){
+
       if(is.null(endDate))
       {
         dnowYMD <- format(Sys.time(), "%Y-%m-%d")
@@ -137,7 +143,7 @@ getSensorData_DAFWA <- function(streams, startDate = NULL, endDate = NULL, aggPe
         ed <- paste0(edBits[[1]][3], '-', edBits[[1]][2], '-', edBits[[1]][1] )
         isoEDate <- paste0(ed, 'T23:59:59Z')
       }
-      
+
       if(is.null(startDate))
       {
         if(is.null(endDate))
@@ -153,15 +159,20 @@ getSensorData_DAFWA <- function(streams, startDate = NULL, endDate = NULL, aggPe
         sd <- paste0(sdBits[[1]][3], '-', sdBits[[1]][2], '-', sdBits[[1]][1])
         isoSDate <- paste0(sd, 'T00:00:00Z')
       }
-      
+
       siteid <- str_remove(streams$SiteID, paste0(streams$Provider, '_'))
       urls <- paste0( streams$SeverName, '/rest/station/', siteid, '/records?processing_level=4', '&startdate=',isoSDate,'&enddate=',isoEDate ,'&property_filter=', str_to_lower(streams$DataType),  '&count=', numrecs, '&offset=0')
-      
+      tryCatch({
       dataStreamsDF <- synchronise(async_map( urls,  getURLAsync_Cosmoz, .limit = asyncThreadNum ))
-      
+
+    }, error = function(e)
+    {
+      stop('No records were returned for the specified query. Most likely there is no data available in the date range specified - (async processing error)')
+    })
+
+
       return(dataStreamsDF)
     }
-
 
 
 getSensorData_SensorCloud <- function(streams, startDate = NULL, endDate = NULL, aggPeriod=timeSteps$day, numrecs=maxRecs ){
@@ -193,11 +204,14 @@ getSensorData_SensorCloud <- function(streams, startDate = NULL, endDate = NULL,
   }
 
   urls <- paste0( streams$SeverName, '/observations?streamid=', streams$SensorID,'&start=',isoSDate,'&end=',isoEDate , '&limit=', numrecs)
-  dataStreamsDF <- synchronise(async_map(
-    urls,
-    getURLAsync_SensorCloud, .limit = asyncThreadNum
-  ))
 
+  tryCatch({
+  dataStreamsDF <- synchronise(async_map(urls, getURLAsync_SensorCloud, .limit = asyncThreadNum))
+  }, error = function(e)
+  {
+    stop('No records were returned for the specified query. Most likely there is no data available in the date range specified - (async processing error)')
+  }
+)
 
   return(dataStreamsDF)
 }
@@ -232,38 +246,38 @@ getSensorData_Adcon <- function(streams, startDate = NULL, endDate = NULL, aggPe
   }
 
 
- 
-  
- 
+
+
+
   sd <- as.POSIXct(isoSDate, format="%Y%m%dT%H:%M:%S")
   ed <- as.POSIXct(isoEDate, format="%Y%m%dT%H:%M:%S")
-  
+
   server <- streams$SeverName
   auth <- adconLogin(usr=streams$Usr[1], pwd=streams$Pwd[1])
-  
+
   inter = pokeDuration_Adcon(usr=streams$Usr[1], pwd=streams$Pwd[1], nodeID=streams$SensorID, date=isoSDate, slots = 2)
   deltaSecs <- as.numeric(ed-sd,units="secs")
   slots <- round(deltaSecs/inter) - 1
-  
+
   urls <- paste0(streams$SeverName, '/addUPI?function=getdata&session-id=', auth , '&id=', nodeID=streams$SensorID, '&date=', isoSDate, '&slots=', slots , '&mode=' , mode)
 
   adconServer <- streams$SeverName
-  dataStreamsDF <- synchronise(async_map(
-    urls,
-    getURLAsync_Adcon, .limit = asyncThreadNum
-  ))
+  tryCatch({
+  dataStreamsDF <- synchronise(async_map(urls, getURLAsync_Adcon, .limit = asyncThreadNum ))
+  }, error = function(e)
+  {
+    stop('No records were returned for the specified query. Most likely there is no data available in the date range specified - (async processing error)')
+  })
   adconLogout(AuthID = auth)
 
-
   return(dataStreamsDF)
-
 
 }
 
 
 getSensorData_Outpost <- function(streams, startDate = NULL, endDate = NULL, aggPeriod=timeSteps$day, numrecs=maxRecs ){
 
- # 1/Dec/2017%2000:00:00
+
   if(is.null(endDate))
   {
     month.abb[4]
@@ -293,11 +307,12 @@ getSensorData_Outpost <- function(streams, startDate = NULL, endDate = NULL, agg
 
   urls <- paste0(streams$SeverName, '/api/2.0/dataservice/mydata.aspx?userName=',  streams$Usr, '&password=', streams$Pwd,
                     '&dateFrom=' , isoSDate, '&dateTo=', isoEDate, '&outpostID=', streams$SiteID, '&inputID=', streams$SensorID)
-
-   dataStreamsDF <- synchronise(async_map(
-    urls,
-    getURLAsync_OutPost, .limit = asyncThreadNum
-  ))
+  tryCatch({
+   dataStreamsDF <- synchronise(async_map(urls, getURLAsync_OutPost, .limit = asyncThreadNum))
+  }, error = function(e)
+  {
+    stop('No records were returned for the specified query. Most likely there is no data available in the date range specified - (async processing error)')
+  })
 
   return(dataStreamsDF)
 
@@ -324,8 +339,10 @@ getSensorFields <- function(){
 
 getSensorLocations <- function(usr='Public', pwd='Public', siteID=NULL, sensorType=NULL, longitude=NULL, latitude=NULL, radius_km=NULL, bbox=NULL,  numToReturn=NULL){
 
+  print(usr)
+  print(pwd)
  sensors <- getAuthorisedSensors(usr=usr, pwd=pwd)
- 
+
  if(!is.null(siteID)){
    sensors <- sensors[sensors$SiteID==siteID,]
  }
@@ -342,12 +359,12 @@ getSensorLocations <- function(usr='Public', pwd='Public', siteID=NULL, sensorTy
                      df1$ProviderURL, df1$Description, df1$StartDate, df1$EndDate)
  colnames(outDF) <- c('SiteID','SiteName','Provider','Backend','Access','Longitude','Latitude',
                      'Active','Owner','Contact','ProviderURL','Description','StartDate','EndDate')
- 
+
  if(nrow(outDF) == 0){
    stop("No sensors could be found : getsensolocations")
  }
- 
- 
+
+
  if(!is.null(bbox)){
    qtype = 'bbox'
  }else if (!is.null(longitude) & !is.null(latitude)){
@@ -356,20 +373,20 @@ getSensorLocations <- function(usr='Public', pwd='Public', siteID=NULL, sensorTy
    qtype = 'All'
  }
  print(qtype)
- 
+
  if(qtype=='point'){
    coordinates(outDF) <- ~Longitude+Latitude
    crs(outDF) <- CRS("+proj=longlat +datum=WGS84")
    dist <- spDistsN1(outDF,c(as.numeric(longitude), as.numeric(latitude)), longlat = T)
    dfDist <- data.frame(outDF, distance=dist)
    outdfraw <- dfDist[order(dfDist$distance),]
-   
+
    if(!is.null(radius_km)){
       outdf <- outdfraw[outdfraw$distance <= as.numeric(radius_km), ]
    }else{
       outdf <- outdfraw
    }
-   
+
  }else if(qtype=='bbox'){
    bits <- str_split(bbox, ';')
    ymin <- as.numeric(bits[[1]][1])
@@ -377,15 +394,15 @@ getSensorLocations <- function(usr='Public', pwd='Public', siteID=NULL, sensorTy
    ymax <- as.numeric(bits[[1]][3])
    xmax <- as.numeric(bits[[1]][4])
    outdf <- outDF[outDF$Longitude >= xmin & outDF$Longitude <= xmax & outDF$Latitude >= ymin & outDF$Latitude <= ymax, ]
-   
+
  }else{
    outdf <- outDF
  }
- 
- 
+
+
  n <- min(nrow(outdf), numToReturn)
  return(outdf[1:n, ])
-   
+
 
 
 
@@ -430,7 +447,7 @@ getSensorDataStreams <-  function(usr='Public', pwd='Public', siteID=NULL, senso
     sensors <- sensors[sensors$SiteID == siteID & sensors$DataType == sensorType, ]
     if(nrow(sensors) < 1){stop('Could not find the specified sensor')}
   }
-  
+
   d <- getSensorData(streams=sensors, aggPeriod=aggPeriod, startDate=startDate, endDate=endDate, outFormat=outFormat  )
 
   return(d)
@@ -438,38 +455,38 @@ getSensorDataStreams <-  function(usr='Public', pwd='Public', siteID=NULL, senso
 
 
 plotSensorLocationsImage <- function(DF){
-  
-  
+
+
   coordinates(DF) <- ~Longitude+Latitude
-  
+
   pPath <- paste0(sensorRootDir, '/AncillaryData/Aust.shp')
   austBdy <- readShapeFile(pPath)
-  
-  scale.parameter = 1  # scaling paramter. less than 1 is zooming in, more than 1 zooming out. 
-  xshift = -0.1  # Shift to right in map units. 
-  yshift = 0.2  # Shift to left in map units. 
-  original.bbox = austBdy@bbox  # Pass bbox of your Spatial* Object. 
-  
+
+  scale.parameter = 1  # scaling paramter. less than 1 is zooming in, more than 1 zooming out.
+  xshift = -0.1  # Shift to right in map units.
+  yshift = 0.2  # Shift to left in map units.
+  original.bbox = austBdy@bbox  # Pass bbox of your Spatial* Object.
+
   # Just copy-paste the following
   edges = original.bbox
-  
+
   edges[1, ] <- (edges[1, ] - mean(edges[1, ])) * scale.parameter + mean(edges[1,]) + xshift
   edges[2, ] <- (edges[2, ] - mean(edges[2, ])) * scale.parameter + mean(edges[2,]) + yshift
-  
-  
-  
+
+
+
   rbPal <- colorRampPalette(c('red','blue'))
- 
+
   Col <- rbPal( length(knownBackends))
   levels <- knownBackends
   #legend("topleft", fill = Col, legend = levels, col = Col)
-  
+
   rv = list("sp.polygons", austBdy, fill = "grey")
-  
+
   spp <-  spplot(DF["Backend"], sp.layout = list(rv), key.space = "bottom", main = "Sensor Locations", xlim = edges[1, ], ylim = edges[2, ])
- 
+
  return(spp)
-  
+
 }
 
 

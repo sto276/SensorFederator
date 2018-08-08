@@ -5,7 +5,7 @@ myOpts <- curlOptions(connecttimeout = 200, ssl.verifypeer = FALSE)
 
 
 generateSiteInfo_DAFWA <- function(providerInfo, rootDir){
-  
+
   urlSts <- paste0('https://api.agric.wa.gov.au/v1/weatherstations.json?api_key=', DAFWAapiKey)
   stns <- getURL(urlSts, .opts = myOpts)
   stnsJ <- fromJSON(stns)
@@ -56,8 +56,12 @@ getURLAsync_DAFWA <- function(x){
 
 
 DAFWA_GenerateTimeSeries <- function(response, retType = 'df', variables){
-  
+
   tsj <- fromJSON(response, flatten=T)
+  if(length(tsj$result) == 0){
+    (stop('No records were returned for the specified query'))
+  }
+
   dts <- paste0(tsj$result$record_date, ' 00:00:00')
   vals <- as.numeric(tsj$result$rain)
 

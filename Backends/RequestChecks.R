@@ -7,23 +7,46 @@ AustYMax = -10.0;
 AustYMin = -44.0;
 
 
+check_GetSensorInfo <- function(siteid=NULL, sensorid=NULL, sensortype=NULL){
+
+  if(!is.null(sensortype)){
+    if(sensortype != ''){
+      if(!sensortype %in% knownFeatures){stop(paste0("The requested Sensor Type is not currently supported. : parameter = sensortype : value = ", sensortype, ' The currently supported sensor types are : ', paste(knownFeatures, collapse = ', ')))}
+    }
+  }
+}
 
 
 check_GetSensorDataStreams <- function(siteid=NULL, sensorid=NULL, sensortype=NULL){
-  
-  
-  if(!is.null(sensortype)){
-    if(sensortype != ''){
-      if(!sensortype %in% knownFeatures){stop(paste0("The requested Sensor Type is not currently supported. : parameter = sensortype : value = ", sensortype))}
-    }
+
+  if(is.null(sensortype)){
+    stop(paste0("You need to specify a 'sensortype'. ", 'The currently supported sensor types are : ', paste(knownFeatures, collapse = ', ')))
   }
 
+  if(is.null(sensortype)){
+    stop(paste0("You need to specify a 'siteid'." ))
+  }
+
+  if(!is.null(sensortype)){
+    if(sensortype != ''){
+      if(!sensortype %in% knownFeatures){stop(paste0("The requested Sensor Type is not currently supported. : parameter = sensortype : value = ", sensortype, ' The currently supported sensor types are : ', paste(knownFeatures, collapse = ', ')))}
+    }
+  }
+}
+
+
+check_GetSensorlocationsAsMap <- function( sensortype=NULL){
+
+  if(!is.null(sensortype)){
+    if(sensortype != ''){
+      if(!sensortype %in% knownFeatures){stop(paste0("The requested Sensor Type is not currently supported. : parameter = sensortype : value = ", sensortype, ' The currently supported sensor types are : ', paste(knownFeatures, collapse = ', ')))}
+    }
+  }
 }
 
 
 check_GetSensorLocations <- function(siteid=NULL, sensortype=NULL, longitude=NULL, latitude=NULL, radius_km=NULL, bbox=NULL, numToReturn=NULL){
 
-  
   if(!is.null(numToReturn)){
     if(numToReturn != ''){
       if(is.na(as.numeric(numToReturn))){stop(paste0("The number of records to return is not a valid numeric value. : parameter = numToReturn : value = ", numToReturn))}
@@ -38,11 +61,11 @@ check_GetSensorLocations <- function(siteid=NULL, sensortype=NULL, longitude=NUL
 
 
   ###  bbox request
-  
+
   if(is.null(bbox) & is.null(longitude )& is.null(latitude)){
     return('OK')
   }
-  
+
 
   if(!is.null(bbox)){
     isBboxReq=T
