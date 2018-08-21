@@ -46,7 +46,10 @@ if(machineName == 'FANCY-DP'){
 knownBackends <- c('SensorCloud', 'Adcon', 'OutPost', 'Cosmoz', 'DAFWA')
 knownFeatures <- c('Soil-Moisture', 'Rainfall')
 
-timeSteps <- data.frame(none='none', minutes='minutes', hours='hours', days='days', weeks='weeks', quarters='quarters', years='years', stringsAsFactors = F)
+timeSteps <- data.frame(none='none', minutes='minutes', hours='hours', days='days', weeks='weeks', months='months', quarters='quarters', years='years', stringsAsFactors = F)
+timeStepDurations <- data.frame(none=0, minutes=60, hours=3600, days=86400, weeks=604800, months=2592000, quarters=7948800, years=31536000, stringsAsFactors = F)
+
+
 timeAggMethods <- data.frame(mean='mean', sum='sum', min='min', max='max', none='none', stringsAsFactors = F)
 apiFormats <- data.frame(simpleTS='simpleTS', nestedTS='nestedTS', stringsAsFactors = F)
 

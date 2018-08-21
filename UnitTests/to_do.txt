@@ -43,3 +43,16 @@ Login tests
 # # specific user login
 # df <- getAuthorisedSensors2(usr='Matthew.Stenson@csiro.au', pwd='RvL97TdIx4vA7TKaKcgVk3D6f0s')
 # vcd(df)
+
+
+
+
+#### getting correct data from cosmoz - use the raw cosmoz api v the sf api
+
+http://cosmoz.csiro.au/rest/station/2/records?processing_level=4&startdate=2018-06-01T00:00:00Z&enddate=2018-08-01T23:59:59Z&property_filter=soil_moist_filtered&count=10000&offset=0
+
+
+http://ternsoils.nexus.csiro.au:8070/SensorAPI/getSensorDataStreams?usr=ross.searle@csiro.au&pwd=S4QQBMk74zhnBnEpTcd6iLwlUredn6kekLkjFL&siteid=Cosmoz_2&sensortype=Soil-Moisture&startdate=27-05-2018&enddate=02-08-2018&aggperiod=none
+
+
+

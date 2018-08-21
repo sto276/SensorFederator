@@ -1,5 +1,5 @@
 source('C:/Users/sea084/Dropbox/RossRCode/Git/SensorBackends/Backends/Backends.R')
-
+library(htmltidy)
 server <- 'http://data.farmlinkrural.com'
 
 property <- 'Soil moisture'
@@ -27,6 +27,7 @@ xml_view(conf)
 
 atts <- adconAttribute(usr=usr, pwd = pwd, nodeID = 15118)
 xml_view(atts)
+write(atts, file = 'C:/Users/sea084/Dropbox/RossRCode/Git/ProbeAPIs/AdconResponses/atts.xml')
 
 startDate <- '20140125T10:45:00'
 endDate <- '20140126T10:45:00'
@@ -58,7 +59,7 @@ vcd(md)
 
 
 
-providerInfo = list( provider= c('RAIN'), backEnd=c('Adcon'), server=c('http://data.farmlinkrural.com'), org=c('CSIRO'), 
+providerInfo = list( provider= c('RAIN'), backEnd=c('Adcon'), server=c('http://data.farmlinkrural.com'), org=c('CSIRO'),
                      usr=c('csirogrdc'), pwd=c('grdc'),
                      access = c('Public'),
                      contact=c('Yvette Oliver'), orgURL=c('http://data.farmlinkrural.com'))

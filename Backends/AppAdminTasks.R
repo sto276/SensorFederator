@@ -1,4 +1,4 @@
-source('C:/Users/sea084/Dropbox/RossRCode/Git/SensorBackends/Backends/Backends.R')
+source('C:/Users/sea084/Dropbox/RossRCode/Git/SensorFederator/Backends/Backends.R')
 
 
 
@@ -17,6 +17,9 @@ write.csv(combined.df, paste0(sensorRootDir, '/SensorInfo/AllSensors.csv'), row.
 vcd(combined.df)
 
 
+
+##### Generate a password
+makeRandomString(5)
 
 
 

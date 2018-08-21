@@ -2,7 +2,7 @@
 currentUser <- ''
 currentPwd <- ''
 
-suppressWarnings( auth <- read.csv(paste0(sensorRootDir, '/ConfigFiles/logins.csv')))
+#suppressWarnings( auth <- read.csv(paste0(sensorRootDir, '/ConfigFiles/logins.csv')))
 suppressWarnings( usrs <- read.csv(paste0(sensorRootDir, '/ConfigFiles/users.csv')))
 suppressWarnings( grps <- read.csv(paste0(sensorRootDir, '/ConfigFiles/groups.csv')))
 
@@ -36,6 +36,8 @@ smipsLogin <- function(usr='Public', pwd='Public'){
 }
 
 
+#getAuthorisedSensors(usr = 'SoilWaterApp', pwd = 'rLR4ArUomkODEpAgaDae4Ak')
+
 getAuthorisedSensors <- function(usr='Public', pwd='Public'){
 
   if(usr=='Public'){
@@ -44,7 +46,7 @@ getAuthorisedSensors <- function(usr='Public', pwd='Public'){
   }else{
 
     idRec <- usrs[usrs$usrID == usr, ]
-    if(nrow(idRec) != 1){stop('Incorrect user name or password')}
+    if(nrow(idRec) != 1){stop('Incorrect user name or password - username actually')}
 
     cusr <- as.character(idRec$usrID[1])
     cpwd <- as.character(idRec$Key[1])
@@ -74,6 +76,7 @@ getAuthorisedSensors <- function(usr='Public', pwd='Public'){
     stop('Login failed')
   }
 }
+
 
 
 getAuthorisedSensors_Old <- function(usr='Public', pwd='Public'){

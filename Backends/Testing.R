@@ -22,14 +22,16 @@ getSensorData(streams=sensors, aggPeriod=timeSteps$week, startDate='09-04-2015',
 
 usrpwd  <- 'ross.searle@csiro.au:rossiscool' # need to pass these inas parameters eventually
 x <- 'https://sensor-cloud.io/api/sensor/v2/observations?streamid=cosmoz.site.2.soil_moisture_filtered&limit=1000000&start=2016-02-20T00:00:00.000Z&end=2017-02-22T23:59:59.000Z'
-x <- 'https://sensor-cloud.io/api/sensor/v2/observations?streamid=cerdi.sfs.5278.stream.5588.soil-moisture.1000mm&start=09-04-2015T00:00:00.000Z&end=11-05-2015T23:59:59.000Z&limit=1000000'
+x <- 'https://sensor-cloud.io/api/sensor/v2/observations?streamid=cerdi.sfs.5278.stream.5588.soil-moisture.1000mm&start=2015-04-09T00:00:00.000Z&end=2015-05-11T23:59:59.000Z&limit=1000000'
 x <- 'https://sensor-cloud.io/api/sensor/v2/observations?streamid=cosmoz.site.2.soil_moisture_filtered&start=2016-02-22T00:00:00.000Z&end=2018-03-24T23:59:59.000Z&limit=1000000'
+
+x <- 'https://sensor-cloud.io/api/sensor/v2/observations?streamid=cerdi.sfs.5278.stream.5588.soil-moisture.1000mm&start=2015-04-09T00:00:00.000Z&end=2015-05-11T23:59:59.000Z&limit=1000000'
+x <- 'https://sensor-cloud.io/api/sensor/v2/observations?streamid=cerdi.sfs.5278.stream.5586.soil-moisture.500mm&start=2015-04-09T09:00:00.000Z&end=2015-05-11T09:00:00.000Z&limit=1000000'
+
 response <- getURL(x, userpwd=usrpwd, httpauth = 1L)
 response
 
 
-
-https://sensor-cloud.io/api/sensor/v2/observations?streamid=cosmoz.site.2.soil_moisture_filtered&limit=100000
 
 
 
@@ -65,12 +67,12 @@ sensors <- sensorInfo[sensorInfo$DataType == 'Rainfall', ]
 
 streams=sensors
 backEnd='Adcon'
-aggregSeconds=timeSteps$day  
-startDate='01-01-2016' 
+aggregSeconds=timeSteps$day
+startDate='01-01-2016'
 endDate='05-01-2016'
 
-startDate='27-05-2017' 
-endDate='29-05-2017' 
+startDate='27-05-2017'
+endDate='29-05-2017'
 
 sensors <- sensors[1,]
 d <- getSensorData(streams=sensors,  aggPeriod=timeSteps$none , startDate=startDate, endDate=endDate)
@@ -96,7 +98,7 @@ aggregSeconds=timeSteps$day
 startDate='09-04-2016'
 endDate='11-05-2016'
 
-urlData <- paste0('https://www.outpostcentral.com', '/api/2.0/dataservice/mydata.aspx?userName=',  'yoliver', '&password=', 'export', 
+urlData <- paste0('https://www.outpostcentral.com', '/api/2.0/dataservice/mydata.aspx?userName=',  'yoliver', '&password=', 'export',
                   '&dateFrom=1/Dec/2017%2000:00:00&dateTo=', isoEDate, '&outpostID=', 'op12253', '&inputID=', '245004')
 dataXML <- getURL(urlData, .opts = myOpts , .encoding = 'UTF-8-BOM')
 cat(dataXML, file='c:/temp/outpost.xml')
@@ -117,12 +119,12 @@ getSensorInfo(usr = 'Admin', pwd = 'ross')
 
 
 dygraph(d , main = paste0('Tet'))  #%>%
-  
+
 
 
 dySeries('Values', label = Reactvalues$property) %>%
   dyAxis("y", label = Reactvalues$property, valueRange = c(0, max)) %>%
-  dyOptions(axisLineWidth = 1.5, fillGraph = F, drawGrid = T) %>% 
+  dyOptions(axisLineWidth = 1.5, fillGraph = F, drawGrid = T) %>%
   dyRangeSelector()
 
 
@@ -132,6 +134,9 @@ dySeries('Values', label = Reactvalues$property) %>%
 
 
 x <- 'http://cosmoz.csiro.au/rest/station/2/records?processing_level=4&startdate=2018-06-01T00%3A00%3A00Z&enddate=2018-07-24T00%3A00%3A00Z&property_filter=*&count=100000000&offset=0'
+
+x <- 'http://cosmoz.csiro.au/rest/station/2/records?processing_level=4&startdate=2017-08-20T09:00:00Z&enddate=2018-08-20T09:00:00Z&property_filter=rainfall&count=1000000&offset=0'
+
 response <- getURL(x)
 response
 
@@ -147,21 +152,28 @@ vcd(sensors)
 
 streams=sensors
 backEnd='Cosmoz'
-aggregSeconds=timeSteps$day 
+aggregSeconds=timeSteps$day
 numrecs = 100
-# startDate='01-01-2016' 
+# startDate='01-01-2016'
 # endDate='05-01-2016'
 
-startDate='27-05-2017' 
-endDate='29-12-2017' 
+startDate='2015-05-27T09:00:00'
+endDate='2017-05-29T19:00:00'
 
+
+format(1810032000, scientific = FALSE)
+print(1810032000)
 sensors <- sensors[1,]
-d <- getSensorData(streams=sensors,  aggPeriod=timeSteps$none , startDate=startDate, endDate=endDate, numrecs = 10000)
+d <- getSensorData(streams=sensors,  aggPeriod=timeSteps$none , startDate=startDate, endDate=endDate, numrecs = 10000000)
+write.csv(to.DF(d), 'c:/temp/ts.csv')
+d <- getSensorData(streams=sensors,  aggPeriod=timeSteps$none , startDate=NULL, endDate=NULL, numrecs = 10000)
+d <- getSensorData(streams=sensors,  aggPeriod=timeSteps$none , startDate=startDate, endDate=endDate, numrecs = 10000, outFormat='nestedTS')
+
 head(d)
 tail(d)
 
-
-
+write.csv(to.DF(dts), 'c:/temp/tsTest.csv')
+write.csv(to.DF(outts), 'c:/temp/outtsTest.csv')
 
 
 
@@ -185,13 +197,13 @@ vcd(sensors)
 
 streams=sensors
 backEnd='DAFWA'
-aggregSeconds=timeSteps$day 
+aggregSeconds=timeSteps$day
 numrecs = 100
-# startDate='01-01-2016' 
+# startDate='01-01-2016'
 # endDate='05-01-2016'
 
-startDate='27-05-2017' 
-endDate='29-12-2017' 
+startDate='27-05-2017'
+endDate='29-12-2017'
 
 sensors <- sensors[1,]
 d <- getSensorData(streams=sensors,  aggPeriod=timeSteps$none , startDate=startDate, endDate=endDate, numrecs = 10000)
@@ -251,7 +263,7 @@ url <- "https://api.netatmo.com/oauth2/token"
 
 # Form encoded
 POST(url, body = params, encode = "form", write_disk("c:/temp/a.txt", overwrite=T))
-readtext::readtext("c:/temp/a.txt") 
+readtext::readtext("c:/temp/a.txt")
 
 
 
@@ -261,6 +273,13 @@ url <- "https://api.netatmo.com/oauth2/token?grant_type=password,client_id=5b5aa
 
 
 getURL('https://api.netatmo.com/oauth2/authorize?client_id=5b5aa99b11349f54f18bec78&scope=read_station&state=abcdefghi')
+
+
+
+
+
+
+
 
 
 

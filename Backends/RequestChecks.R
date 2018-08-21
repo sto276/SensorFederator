@@ -17,7 +17,24 @@ check_GetSensorInfo <- function(siteid=NULL, sensorid=NULL, sensortype=NULL){
 }
 
 
-check_GetSensorDataStreams <- function(siteid=NULL, sensorid=NULL, sensortype=NULL){
+check_GetSensorDataStreams <- function(siteid=NULL, sensorid=NULL, sensortype=NULL, startDate=NULL, endDate=NULL){
+
+  if(!is.null(startDate)){
+    dt <- strptime(startDate, "%Y-%m-%dT%H:%M:%S")
+   if(is.na(dt)){stop(paste0("The specified 'startdate' is not valid or in the correct format. It needs to be in the format %Y-%m-%dT%H:%M:%S eg 2018-04-20T09:00:00"))}
+  }
+
+  if(!is.null(endDate)){
+    dt <- strptime(endDate, "%Y-%m-%dT%H:%M:%S")
+    if(is.na(dt)){stop(paste0("The specified 'startdate' is not valid or in the correct format. It needs to be in the format %Y-%m-%dT%H:%M:%S eg 2018-04-20T09:00:00"))}
+  }
+
+  if(!is.null(startDate) & !is.null(startDate)){
+    d1 <- strptime(startDate, "%Y-%m-%dT%H:%M:%S")
+    d2 <- strptime(endDate, "%Y-%m-%dT%H:%M:%S")
+    dif <- d2 - d1
+    if(dif<0){stop(paste0("Specified 'enddate' is before 'startdate'"))}
+  }
 
   if(is.null(sensortype)){
     stop(paste0("You need to specify a 'sensortype'. ", 'The currently supported sensor types are : ', paste(knownFeatures, collapse = ', ')))
