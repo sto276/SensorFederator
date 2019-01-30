@@ -8,6 +8,7 @@ generateSiteInfo_OutPost <- function(providerInfo, rootDir){
   #urlData <- 'https://www.outpostcentral.com/api/2.0/dataservice/mydata.aspx?userName=yoliver&password=export&dateFrom=1/Dec/2017%2000:00:00&dateTo=1/Dec/2017%2001:00:00'
   dataXML <- getURL(urlData, .opts = myOpts , .encoding = 'UTF-8-BOM')
   xmlObj=xmlParse(dataXML, useInternalNodes = TRUE)
+  #xml_view(dataXML)
 
   # dataXML <- readLines('C:/Temp/outpost1.xml', encoding = 'UTF-8-BOM')
   # xmlObj=xmlParse(dataXML, useInternalNodes = TRUE)
@@ -33,6 +34,7 @@ generateSiteInfo_OutPost <- function(providerInfo, rootDir){
 
   #outSiteDF <- locs[grepl(providerInfo$provider, locs$SiteID ),]
   outName <- paste0(rootDir, '/SensorInfo/', providerInfo$provider, '_Sites.csv')
+
   write.csv(locs, outName, row.names = F, quote = F)
   cat(paste0('Site info for ', providerInfo$provider, ' written to ',  outName, '\n'))
   vc(outName)
@@ -87,13 +89,13 @@ generateSensorInfo_OutPost <- function(providerInfo, rootDir){
 
 getData_Outpost<- function(usr=usr, pwd=pwd, opID=opID, sensorID=sensorID, dateFrom=dateFrom,  dateTo=dateTo){
 
-  usr<- providerInfo$usr
-  pwd <- providerInfo$pwd
-
-  opID <- 'op16299'
-  sensorID <- '386340'
-  dateFrom <- '1/Dec/2017%2000:00:00'
-  dateTo <- '1/Dec/2017%2001:00:00'
+  # usr<- providerInfo$usr
+  # pwd <- providerInfo$pwd
+  #
+  # opID <- 'op16299'
+  # sensorID <- '386340'
+  # dateFrom <- '1/Dec/2017%2000:00:00'
+  # dateTo <- '1/Dec/2017%2001:00:00'
 
   url <- paste0(providerInfo$server, '/api/2.0/dataservice/mydata.aspx?userName=', usr, '&password=', pwd,
                     '&outpostID=', opID, '&inputID=', sensorID, '&dateFrom=', dateFrom, '&dateTo=', dateTo)
@@ -104,7 +106,8 @@ getData_Outpost<- function(usr=usr, pwd=pwd, opID=opID, sensorID=sensorID, dateF
 
 getURLAsync_OutPost <- function(x){
 
-  response <- getURL(x)
+  #response <- getURL(x)
+  response <- getURL(x, .opts = myOpts , .encoding = 'UTF-8-BOM')
 
   ndf<- outpost_GenerateTimeSeries(response, retType = 'df')
   return(ndf)
@@ -112,7 +115,18 @@ getURLAsync_OutPost <- function(x){
 
 outpost_GenerateTimeSeries <- function(response, retType = 'df'){
 
- # response2 <- str_sub(response, 4, nchar(response))
+  # this is a massive hack to deal with a problem in the xml response on linux systems
+  # on linux the xml has some characters att the start of the response which then stop it from
+  # being recognised as propper xml by the R xml parsing functions
+  # the code below chops off these characters in linux system
+  # if I understood more about character sets etc in xml I could probably doa proper fix
+  # sysinf <- Sys.info()
+  # if(as.character(sysinf['sysname']) == "Linux"){
+  #   response2 <- str_sub(response, 4, nchar(response))
+  #   print("here")
+  # }else{
+  #   response2 <- response
+  # }
 
   xmlObj=xmlParse(response, useInternalNodes = TRUE)
 

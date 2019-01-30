@@ -11,7 +11,7 @@ library(RCurl)
 library(stringr)
 library(raster)
 
-source('C:/Users/sea084/Dropbox/RossRCode/Git/SensorBackends/Backends/Backends.R')
+source('C:/Users/sea084/Dropbox/RossRCode/Git/SensorFederator/Backends/Backends.R')
 
 myOpts <- curlOptions(connecttimeout = 2000, ssl.verifypeer = FALSE)
 
@@ -24,15 +24,39 @@ myOpts <- curlOptions(connecttimeout = 2000, ssl.verifypeer = FALSE)
 
 # This login gets 2 projects RCSN and EConnect (DAFWA) - run this then manually split the projects into 2 seperate files
 
-providerInfo = list( provider= c('RCSN'), backEnd=c('OutPost'), server=c('https://www.outpostcentral.com'), org=c('CSIRO'), 
+providerInfo = list( provider= c('RCSN'), backEnd=c('OutPost'), server=c('https://www.outpostcentral.com'), org=c('CSIRO'),
                      usr=c('yoliver'), pwd=c('export'),
                      access = c('Public'),
                      contact=c('Frank Demden PAA'), orgURL=c('http://outpostcentral.com/'))
+
+
 
 generateSiteInfo_OutPost(providerInfo, rootDir)
 generateSensorInfo_OutPost(providerInfo, rootDir)
 
 vc(paste0(rootDir, '/SensorInfo/', providerInfo$provider, '_SensorsAll.csv'))
+
+
+#####  USQ - Dave Freebairn
+
+rootDir = 'C:/Users/sea084/Dropbox/RossRCode/Git/SensorFederator'
+
+providerInfo = list( provider= c('USQ-Outpost'), backEnd=c('OutPost'), server=c('https://www.outpostcentral.com'), org=c('USQ'),
+                     usr=c('David+Freebairn'), pwd=c('USQ'),
+                     access = c('Public'),
+                     contact=c('David Freebairn'), orgURL=c('http://outpostcentral.com/'))
+
+generateSiteInfo_OutPost(providerInfo, rootDir)
+generateSensorInfo_OutPost(providerInfo, rootDir)
+
+vc(paste0(rootDir, '/SensorInfo/', providerInfo$provider, '_SensorsAll.csv'))
+
+
+
+
+
+
+
 
 
 

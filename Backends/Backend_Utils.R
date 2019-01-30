@@ -2,7 +2,7 @@ library(XML)
 library(xts)
 
 #print(paste0(' BEU = ',sensorRootDir ))
-source(paste0(sensorRootDir, '/Backends/Backends.R'))
+#source(paste0(sensorRootDir, '/Backends/Backends.R'))
 
 
 
@@ -35,6 +35,7 @@ convertJSONtoDF <- function(resp){
 
 
 makeNestedDF <- function(TS, sensors, startDate, endDate, aggperiod){
+
 
   DF <- to.DF(TS)
 
@@ -81,7 +82,9 @@ makeNestedDF <- function(TS, sensors, startDate, endDate, aggperiod){
 
 mergedfTSList <- function(listofDFTS, streams){
 
-  lodf = list(length=nrow(streams))
+  #lodf = list(length=nrow(streams))  # This is wrong - need to fix to
+
+  lodf <-   vector("list", nrow(streams) )
   for(i in 1:nrow(streams)){
 
     ndf <- listofDFTS[[i]]
@@ -97,6 +100,7 @@ mergedfTSList <- function(listofDFTS, streams){
 
     lodf[[i]] <- ndf
   }
+
 
   mdf = Reduce(function(...) merge(..., all=T), lodf)
   return(mdf)
@@ -126,7 +130,7 @@ convertToXML <- function(df){
 #   cns <-names(df)
 # df <- na.omit(df)
 # #write.csv(df, 'c:/temp/ts.csv')
-# #print(as.POSIXlt(df[,1]))
+
 #   ts <- xts(x=df[,-1], order.by=as.POSIXlt(df[,1], format = "%Y-%m-%d %H:%M:%S"), tzone =  "Australia/Brisbane")
 #   #ts <- xts(x=df[,-1],unique = FALSE, order.by=as.POSIXlt(df[,1], format = "%Y-%m-%d %H:%M:%S"), tzone =  Sys.getenv("TZ"))
 #
@@ -183,7 +187,7 @@ resampleTS <- function(inTS, aggPeriod=timeSteps$day, ftype=timeAggMethods$none,
     outTS <- doAgg(inTS, aggPeriod, cMean, startDate=startDate, endDate = endDate)
     return(outTS)
   }else if(ftype==timeAggMethods$sum){
-    outTS <- doAgg(inTS, aggPeriod, cSum, startDate=startDate, endDate = endDate)
+    outTS <- doAgg(ts=inTS, agg=aggPeriod, FUN=cSum, startDate=startDate, endDate = endDate)
     return(outTS)
   }else if(ftype==timeAggMethods$max){
     outTS <- doAgg(inTS, aggPeriod, cMax, startDate=startDate, endDate = endDate)
@@ -202,7 +206,7 @@ resampleTS <- function(inTS, aggPeriod=timeSteps$day, ftype=timeAggMethods$none,
 resampleTS_Old <- function(inTS, aggPeriod=timeSteps$day, ftype=timeAggMethods$mean){
 
   ends <- endpoints(inTS,aggPeriod,1)
-  #print(ends)
+
 
   if(ftype==timeAggMethods$mean){
     outTS <- period.apply(inTS,ends ,cMean)
@@ -224,7 +228,6 @@ resampleTS_Old <- function(inTS, aggPeriod=timeSteps$day, ftype=timeAggMethods$m
 
 }
 
-
 doAgg <- function(ts, agg, FUN, startDate, endDate ){
 
   aggP <- str_replace_all(agg, 's', '')
@@ -235,13 +238,62 @@ doAgg <- function(ts, agg, FUN, startDate, endDate ){
   sd <- as.POSIXct(startDate, format = "%Y-%m-%dT%H:%M:%S")
   ed <- as.POSIXct(endDate, format = "%Y-%m-%dT%H:%M:%S") + exPeriod  ## bit of a hack allows us to go past the end date so we can query the last range
 
-  d1 <-as.POSIXlt(startDate, format = "%Y-%m-%dT%H:%M:%S" )
+  #d1 <- as.POSIXct(startDate, format = "%Y-%m-%dT%H:%M:%S" )
+  dateSeq <- seq(sd, ed, by=paste0("1 ", aggP))
+  mat <- matrix(data=NA, nrow = length(dateSeq)-1, ncol = ncol(ts))
+
+  # the date reported for the aggregation is the end point of the ag interval
+  repd <- character(length(index(dateSeq))-1)
+
+  for (i in 1:(length(index(dateSeq))-1)) {
+    d1 <- as.POSIXct(dateSeq[i], format = "%Y-%m-%dT%H:%M:%S")
+    d2<- as.POSIXct(dateSeq[i+1]-1, format = "%Y-%m-%dT%H:%M:%S")
+
+
+    p <- ts[paste0(d1,'/',d2),]
+    repd[i] <- as.character(d2, format = "%Y-%m-%dT%H:%M:%S")
+
+    for(j in 1:ncol(ts)){
+      if(length(p) > 0){
+        mat[i, j] <- FUN(p[,j])
+      }
+    }
+  }
+  dts <- xts(mat , as.POSIXct(repd, format = "%Y-%m-%dT%H:%M:%S"))
+  #dts <- xts(mat , dateSeq)
+  dts <- na.omit(dts)
+  names(dts) <- names(ts)
+  indexFormat(dts) <- "%Y-%m-%dT%H:%M:%S"
+
+
+  ###  Fill missing dates with NA
+  sdna <- as.POSIXct(repd[1], format = "%Y-%m-%dT%H:%M:%S")
+  edna <- as.POSIXct(repd[length(repd)], format = "%Y-%m-%dT%H:%M:%S")
+  dateSeq <- seq(sdna, edna, by=paste0("1 ", aggP))
+  df2 <- merge(dts,zoo(NULL, dateSeq ), all=TRUE)
+
+  return(df2)
+}
+
+
+doAggOld <- function(ts, agg, FUN, startDate, endDate ){
+
+  aggP <- str_replace_all(agg, 's', '')
+  exPeriod <- 0
+
+  exPeriod <- as.numeric(timeStepDurations[agg][1])
+
+  sd <- as.POSIXct(startDate, format = "%Y-%m-%dT%H:%M:%S")
+  ed <- as.POSIXct(endDate, format = "%Y-%m-%dT%H:%M:%S") + exPeriod  ## bit of a hack allows us to go past the end date so we can query the last range
+
+  d1 <- as.POSIXct(startDate, format = "%Y-%m-%dT%H:%M:%S" )
   dateSeq <- seq(sd, ed, by=paste0("1 ", aggP))
   mat <- matrix(data=NA, nrow = length(dateSeq), ncol = ncol(ts))
 
   for (i in 1:length(index(dateSeq))-1) {
-    d1<- dateSeq[i]
-    d2<- dateSeq[i+1]
+    d1 <- as.POSIXct(dateSeq[i], format = "%Y-%m-%dT%H:%M:%S")
+    d2<- as.POSIXct(dateSeq[i+1]-1, format = "%Y-%m-%dT%H:%M:%S")
+    #print(paste0(d1, '    ', d2))
 
     p <- ts[paste0(d1,'/',d2),]
 
@@ -256,8 +308,17 @@ doAgg <- function(ts, agg, FUN, startDate, endDate ){
   dts <- na.omit(dts)
   names(dts) <- names(ts)
   indexFormat(dts) <- "%Y-%m-%dT%H:%M:%S"
-#print(dts)
-  return(dts)
+
+
+  ###  Fill missing dates with NA
+  sdna <- as.POSIXct(startDate, format = "%Y-%m-%dT%H:%M:%S")
+  edna <- as.POSIXct(endDate, format = "%Y-%m-%dT%H:%M:%S")
+  dateSeq <- seq(sdna, edna, by=paste0("1 ", aggP))
+  df2 <- merge(dts,zoo(NULL, dateSeq ), all=TRUE)
+
+  #lead_x <- lag(df2, k = -1)
+
+  return(df2)
 }
 
 

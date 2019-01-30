@@ -3,8 +3,8 @@ currentUser <- ''
 currentPwd <- ''
 
 #suppressWarnings( auth <- read.csv(paste0(sensorRootDir, '/ConfigFiles/logins.csv')))
-suppressWarnings( usrs <- read.csv(paste0(sensorRootDir, '/ConfigFiles/users.csv')))
-suppressWarnings( grps <- read.csv(paste0(sensorRootDir, '/ConfigFiles/groups.csv')))
+#suppressWarnings( usrs <- read.csv(paste0(sensorRootDir, '/ConfigFiles/users.csv')))
+#suppressWarnings( grps <- read.csv(paste0(sensorRootDir, '/ConfigFiles/groups.csv')))
 
 
 
@@ -41,31 +41,70 @@ smipsLogin <- function(usr='Public', pwd='Public'){
 getAuthorisedSensors <- function(usr='Public', pwd='Public'){
 
   if(usr=='Public'){
-    avail <- sensorInfo[sensorInfo$Access == 'Public',]
+    #avail <- sensorInfo[sensorInfo$Access == 'Public',]
+
+    sql <- "SELECT * FROM Sites INNER JOIN Sensors ON Sites.SiteID = Sensors.SiteID WHERE sites.Access = 'Public'"
+    res <- dbSendQuery(DBCon, sql)
+    avail <- dbFetch(res)
+    dbClearResult(res)
+
+
     return(avail)
   }else{
 
-    idRec <- usrs[usrs$usrID == usr, ]
+    # idRec <- usrs[usrs$usrID == usr, ]
+    # if(nrow(idRec) != 1){stop('Incorrect user name or password - username actually')}
+
+    sql <- paste0("SELECT * FROM AuthUsers WHERE usrID = '", usr, "'")
+    res <- dbSendQuery(DBCon, sql)
+    idRec <- dbFetch(res)
+    dbClearResult(res)
     if(nrow(idRec) != 1){stop('Incorrect user name or password - username actually')}
 
     cusr <- as.character(idRec$usrID[1])
-    cpwd <- as.character(idRec$Key[1])
-    cgrp <- as.character(idRec$Group[1])
+    cpwd <- as.character(idRec$Pwd[1])
+    cgrp <- as.character(idRec$GroupName[1])
 
-    accessRec <- grps[grps$Group == cgrp, ]
-    caccess <- as.character(accessRec$access[1])
-    accessList <- as.vector(str_split(caccess, ';'))
+    # accessRec <- grps[grps$Group == cgrp, ]
+    # caccess <- as.character(accessRec$access[1])
+    # accessList <- as.vector(str_split(caccess, ';'))
+
+    sql <- paste0("SELECT * FROM AuthAccess WHERE GroupName = '", cgrp, "'")
+    res <- dbSendQuery(DBCon, sql)
+    accessRecs <- dbFetch(res)
+    dbClearResult(res)
+    accessList <- accessRecs$access
 
     if(pwd == cpwd){
 
       if(usr == 'Admin'){
+        sql <- "SELECT * FROM Sites INNER JOIN Sensors ON Sites.SiteID = Sensors.SiteID"
+        res <- dbSendQuery(DBCon, sql)
+        sensorInfo <- dbFetch(res)
+        dbClearResult(res)
+        print("Admin")
+
         return(sensorInfo)
-      }else if(caccess == 'All'){
+      #}else if(caccess == 'All'){
+      }else if('All' %in% accessList){
+
+        sql <- "SELECT * FROM Sites INNER JOIN Sensors ON Sites.SiteID = Sensors.SiteID"
+        res <- dbSendQuery(DBCon, sql)
+        sensorInfo <- dbFetch(res)
+        dbClearResult(res)
+        print("ALL")
         return(sensorInfo)
       }
       else {
-        #avail <- sensorInfo[sensorInfo$Access == 'Public' | sensorInfo$Access == 'Restricted' | sensorInfo$Provider %in% accessList[[1]],]
-        avail <- sensorInfo[sensorInfo$Access == 'Public' | (sensorInfo$Access == 'Restricted' & sensorInfo$Provider %in% accessList[[1]]),]
+        #avail <- sensorInfo[sensorInfo$Access == 'Public' | (sensorInfo$Access == 'Restricted' & sensorInfo$Provider %in% accessList[[1]]),]
+
+        sql <- paste0("SELECT * FROM Sites INNER JOIN Sensors ON Sites.SiteID = Sensors.SiteID
+        WHERE Access == 'Public' or ( Access == 'Restricted' and SensorGroup IN ( SELECT access FROM AuthAccess WHERE GroupName = '", cgrp, "'))")
+        res <- dbSendQuery(DBCon, sql)
+        avail <- dbFetch(res)
+        print(head(avail))
+
+
         return(avail)
       }
        stop('Login failed')

@@ -17,7 +17,7 @@ test_that('Sensors are available', {
   url <- 'http://127.0.0.1:8070/SensorAPI/getSensorLocations'
   resp <- getURL(url)
   d <- fromJSON(resp)
-  expect_equal(nrow(d), 237)
+  expect_gt(nrow(d), 200)
 })
 
 test_that('Incorrect login error is thrown', {
@@ -25,7 +25,7 @@ test_that('Incorrect login error is thrown', {
   url <- 'http://127.0.0.1:8070/SensorAPI/getSensorLocations?usr=noone'
   resp <- getURL(url)
   d <- fromJSON(resp)
-  expect_equal(d$error, "Incorrect user name or password")
+  expect_equal(d$error, "Incorrect user name or password - username actually")
 })
 
 

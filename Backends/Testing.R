@@ -1,6 +1,20 @@
-source('C:/Users/sea084/Dropbox/RossRCode/Git/SensorBackends/Backends/Backend_Config.R')
+source('C:/Users/sea084/Dropbox/RossRCode/Git/SensorFederator/Backends/Backend_Config.R')
 library(htmltidy)
+library(plotly)
+library(dygraphs)
 # Sensor Cloud
+
+
+
+start_time <- Sys.time()
+s <- getAuthorisedSensors()
+end_time <- Sys.time()
+end_time - start_time
+
+s <- getAuthorisedSensors(usr = 'Bob', pwd = 'JWEJTOhwCuH8sQEKD2ft4KAPg')
+
+
+
 
 site <- 'cerdi.sfs.5278.platform'
 
@@ -57,10 +71,10 @@ head(d)
 write(xmlData, file = 'C:/Users/sea084/Dropbox/RossRCode/Git/ProbeAPIs/AdconResponses/sm.xml')
 xml_view(xmlData)
 
-sensorInfo[sensorInfo$SiteID == site & sensorInfo$DataType == 'Rainfall', ]
-
+sensorInfo <- getAuthorisedSensors()
 sensors <- sensorInfo[sensorInfo$SiteID == site & sensorInfo$DataType == 'Rainfall', ]
-sensors <- sensors[order(sensors$UpperDepth) & sensorInfo$Provider == 'RAIN',]
+sensors <- sensorInfo[sensorInfo$SiteID == site, ]
+sensors <- sensors[order(sensors$UpperDepth) & sensorInfo$SensorGroup == 'RAIN',]
 vcd(sensorInfo)
 
 sensors <- sensorInfo[sensorInfo$DataType == 'Rainfall', ]
@@ -95,8 +109,9 @@ streams=sensors[1:3,]
 streams=sensors
 backEnd='OutPost'
 aggregSeconds=timeSteps$day
-startDate='09-04-2016'
-endDate='11-05-2016'
+startDate <- '2018-01-01T00:00:00'
+endDate='2018-01-04T23:59:59'
+
 
 urlData <- paste0('https://www.outpostcentral.com', '/api/2.0/dataservice/mydata.aspx?userName=',  'yoliver', '&password=', 'export',
                   '&dateFrom=1/Dec/2017%2000:00:00&dateTo=', isoEDate, '&outpostID=', 'op12253', '&inputID=', '245004')
@@ -122,10 +137,58 @@ dygraph(d , main = paste0('Tet'))  #%>%
 
 
 
-dySeries('Values', label = Reactvalues$property) %>%
-  dyAxis("y", label = Reactvalues$property, valueRange = c(0, max)) %>%
-  dyOptions(axisLineWidth = 1.5, fillGraph = F, drawGrid = T) %>%
-  dyRangeSelector()
+
+####   Outpost USQ
+
+#usr <- 'David+Freebairn'
+usr <- 'DFreebairn'
+pwd <- 'USQ'
+siteID <- 'op28962'
+sensorID <- '694333'
+
+sensors <- sensorInfo[sensorInfo$SiteID == siteID & sensorInfo$DataType == 'Rainfall', ]
+streams=sensors
+backEnd='OutPost'
+aggregSeconds=timeSteps$day
+startDate <- '2018-01-01T00:00:00'
+endDate='2018-01-04T23:59:59'
+
+startDate <- '2018-01-01T09:00:00'
+endDate='2018-01-04T08:59:59'
+
+urlData <- paste0('https://www.outpostcentral.com', '/api/2.0/dataservice/mydata.aspx?userName=',  usr, '&password=', pwd,
+                  '&dateFrom=1/Jan/2018%2000:00:00&dateTo=', '12/Sep/2018%2000:00:00', '&outpostID=', siteID, '&inputID=', sensorID)
+response <- getURL(urlData, .opts = myOpts , .encoding = 'UTF-8-BOM')
+#xml_view(dataXML)
+cat(response, file='c:/temp/outpost.xml')
+
+xmlObj=xmlParse(response, useInternalNodes = TRUE)
+doc <- xmlRoot(xmlObj)
+nsDefs <- xmlNamespaceDefinitions(doc)
+ns <- structure(sapply(nsDefs, function(x) x$uri), names = names(nsDefs))
+
+
+vals <- as.numeric(xpathSApply(doc ,"//opdata:sites/opdata:site/opdata:inputs/opdata:input/opdata:records/opdata:record/value", xmlValue, ns))
+tail(vals, 10)
+sum(vals)
+
+rawv <- getSensorData(streams=streams, aggPeriod=timeSteps$days, startDate=startDate, endDate=endDate )
+head(rawv)
+plot(rawv)
+write.csv(to.DF(rawv), 'c:/temp/outpostRaw.csv')
+sum(rawv$Rainfall_0)
+
+daysv <- getSensorData(streams=streams, aggPeriod=timeSteps$days, startDate=startDate, endDate=endDate )
+sum(daysv$Rainfall_0)
+write.csv(to.DF(daysv), 'c:/temp/outpostDays.csv')
+plot(daysv)
+
+
+
+
+dygraph(daysv) %>% dyRangeSelector()
+
+
 
 
 
@@ -202,8 +265,8 @@ numrecs = 100
 # startDate='01-01-2016'
 # endDate='05-01-2016'
 
-startDate='27-05-2017'
-endDate='29-12-2017'
+startDate <- '2018-01-01T00:00:00'
+endDate <- '2018-02-04T23:00:00'
 
 sensors <- sensors[1,]
 d <- getSensorData(streams=sensors,  aggPeriod=timeSteps$none , startDate=startDate, endDate=endDate, numrecs = 10000)
@@ -253,7 +316,7 @@ url <- paste0('http:/api.netatmo.com/api/getpublicdata?access_token=__TECHNICAL_
 
 paste0('https://api.netatmo.com/oauth2/authorize?xlient_id=', ClientId, '&scope=read_station,&state=')
 
-Rossiscool1!
+
 
 library(httr)
 params <- c(grant_type='password',client_id=ClientId, client_secret=ClientSecret, username='ross.searle@gmail.com', password='Rossiscool1!', scope='read_station')
@@ -278,7 +341,75 @@ getURL('https://api.netatmo.com/oauth2/authorize?client_id=5b5aa99b11349f54f18be
 
 
 
+########    MAIT   ###########
 
+
+siteid <- 'VicAg_Bangerang'
+sensortype <- 'Soil-Moisture'
+
+startDate <- '2018-01-01T00:00:00'
+endDate <- '2018-01-04T23:00:00'
+
+sensorInfo <- getAuthorisedSensors()
+sensors <- sensorInfo[sensorInfo$SiteID == siteid & sensorInfo$DataType == 'Soil-Moisture' & sensorInfo$Backend=='Mait', ]
+sensors <- sensors[order(sensors$UpperDepth),]
+sensors <- sensors[1:3,]
+
+d <- getSensorData(streams=sensors,  aggPeriod=timeSteps$none , startDate=startDate, endDate=endDate, numrecs = 10000000)
+head(d)
+plot(d)
+write.csv(to.DF(d), 'c:/temp/ts.csv')
+
+sensors <- sensorInfo[sensorInfo$SiteID == 'VicAg_Speed' & sensorInfo$DataType == 'Rainfall' & sensorInfo$Backend=='Mait', ]
+d <- getSensorData(streams=sensors,  aggPeriod=timeSteps$days , startDate=startDate, endDate=endDate, numrecs = 10000000)
+head(d)
+plot(d)
+
+
+
+
+
+####  Mait USyd
+
+siteid <- 'Usyd_Dinyah'
+sensortype <- 'Soil-Moisture'
+
+startDate <- '2018-03-01T00:00:00'
+endDate <- '2018-03-04T23:00:00'
+
+network = '1107' # USyd
+
+
+
+url <- paste0('http://intelliweb.mait.com.au/getdata?network=', network)
+stations <- getURL(url, userpwd=paste0( "dpigetdata:dpigetdata"))
+modules <- read.csv(text=stations, skip=1)
+modules
+url <- 'http://intelliweb.mait.com.au/getdata?network=1107&module=10&startdate=2018/03/01&enddate=2018/03/04'
+dcsv <- getURL(url, userpwd=paste0( "dpigetdata:dpigetdata"))
+
+
+sensorInfo <- getAuthorisedSensors()
+sensors <- sensorInfo[sensorInfo$SiteID == siteid & sensorInfo$DataType == 'Soil-Moisture' & sensorInfo$Backend=='Mait', ]
+sensors <- sensors[order(sensors$UpperDepth),]
+sensors <- sensors[1:3,]
+
+d <- getSensorData(streams=sensors,  aggPeriod=timeSteps$none , startDate=startDate, endDate=endDate, numrecs = 10000000)
+head(d)
+plot(d)
+write.csv(to.DF(d), 'c:/temp/ts.csv')
+
+
+########    DataFarmer   ###########
+
+startDate <- '2018-01-04T00:00:00'
+endDate <- '2018-01-10T23:00:00'
+
+sensors <- sensorInfo[sensorInfo$SiteID == 'BCG_Banyena' & sensorInfo$Backend=='DataFarmer' & sensorInfo$DataType == 'Temperature', ]
+d <- getSensorData(streams=sensors,  aggPeriod=timeSteps$none , startDate=startDate, endDate=endDate, numrecs = 10000000)
+head(d)
+plot(d)
+write.csv(to.DF(d), 'c:/temp/ts.csv')
 
 
 

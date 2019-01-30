@@ -1191,9 +1191,9 @@ BCG_Banyena,Simons Place,TRUE,BCG,DataFarmer,Public,Cj7y280FLYLeywGrjq7msbIE9r4G
 BCG_Banyena,Simons Place,TRUE,BCG,DataFarmer,Public,Cj7y280FLYLeywGrjq7msbIE9r4GxT2geXP2JSGMnv49PDcg4o,QhVWv4V6UDpc2wU0imiQmxZxkQHns47o1V9Dm6uTc11m3kty1H,https://datafarmer.com.au/ServiceV1/DataFarmerService.svc/,-36.570252,142.794695,WindSpeed,WindSpeed,NA,NA,WindSpeed,0,0,TRUE,percent
 op28956,USQ 28956,TRUE,USQ-Outpost,OutPost,Public,DFreebairn,USQ,https://www.outpostcentral.com,-27.60275,151.92685,694237,Counter 1,NA,NA,Rainfall,0,0,TRUE,mm
 op28962,USQ 28962,TRUE,USQ-Outpost,OutPost,Public,DFreebairn,USQ,https://www.outpostcentral.com,-27.4376868,153.0220347,694333,Counter 1,NA,NA,Rainfall,0,0,TRUE,mm
-op29597,USQ 29597,TRUE,USQ-Outpost,OutPost,Public,DFreebairn,USQ,https://www.outpostcentral.com,-27.405248,153.012620,715359,Counter 1,NA,NA,Rainfall,0,0,TRUE,mm
+op29597,USQ 29597,TRUE,USQ-Outpost,OutPost,Public,DFreebairn,USQ,https://www.outpostcentral.com,-27.49462,153.02941,715359,Counter 1,NA,NA,Rainfall,0,0,TRUE,mm
 op29670,USQ 29670,TRUE,USQ-Outpost,OutPost,Public,DFreebairn,USQ,https://www.outpostcentral.com,-27.49583,153.0289,725458,Counter 1,NA,NA,Rainfall,0,0,TRUE,mm
-op31917,USQ 31917,TRUE,USQ-Outpost,OutPost,Public,DFreebairn,USQ,https://www.outpostcentral.com,-27.5509,151.9717,808521,Counter 1,NA,NA,Rainfall,0,0,TRUE,mm
+op31917,USQ 31917,TRUE,USQ-Outpost,OutPost,Public,DFreebairn,USQ,https://www.outpostcentral.com,-28.53647,150.31043,808521,Counter 1,NA,NA,Rainfall,0,0,TRUE,mm
 VicAg_Speed,Speed,TRUE,1099,Mait,Public,dpigetdata,dpigetdata,http://intelliweb.mait.com.au,,,1,Humidity,,,Humidity,0,0,TRUE,
 VicAg_Speed,Speed,TRUE,1099,Mait,Public,dpigetdata,dpigetdata,http://intelliweb.mait.com.au,,,1,Temperature,,,Temperature,0,0,TRUE,
 VicAg_Speed,Speed,TRUE,1099,Mait,Public,dpigetdata,dpigetdata,http://intelliweb.mait.com.au,,,1,Wind Direction,,,Wind-Direction,0,0,TRUE,

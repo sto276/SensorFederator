@@ -6,13 +6,15 @@ sensorRootDir <- 'C:/Users/sea084/Dropbox/RossRCode/Git/SensorFederator'
 source(paste0(sensorRootDir, '/Backends/Backend_Config.R'))
 
 
+sensorInfo <- getAuthorisedSensors('Admin', 'JWEJTOhwCuH8sQEKD2ft4KAPg')
+
 
 
 test_that('Cosmoz is working', {
   sensors <- sensorInfo[sensorInfo$SiteID == 'Cosmoz_2' & sensorInfo$DataType == 'Rainfall' & sensorInfo$Backend=='Cosmoz', ]
   sensors <- sensors[order(sensors$UpperDepth),]
-  d <- getSensorData(streams=sensors[1,],  aggPeriod=timeSteps$days , startDate='2017-05-27T09:00:00', endDate='2017-05-28T09:00:00', numrecs = 10000)
-  expect_equal(length(d), 2)
+  d <- getSensorData(streams=sensors[1,],  aggPeriod=timeSteps$days , startDate='2017-05-20T09:00:00', endDate='2017-05-28T09:00:00', numrecs = 10000)
+  expect_equal(length(d), 9)
 })
 
 
@@ -27,8 +29,8 @@ test_that('DAFWA is working', {
 test_that('Outpost is working', {
   sensors <- sensorInfo[sensorInfo$SiteID == 'op12251' & sensorInfo$DataType == 'Soil-Moisture', ]
   sensors <- sensors[order(sensors$UpperDepth),]
-  d <- getSensorData(streams=sensors[1:3,], aggPeriod=timeSteps$days, startDate='2017-05-09T09:00:00', endDate='2017-05-11T09:00:00' )
-  expect_equal(length(d), 9)
+  d <- getSensorData(streams=sensors, aggPeriod=timeSteps$days, startDate='2017-05-09T09:00:00', endDate='2017-05-17T09:00:00' )
+  expect_equal(length(d), 72)
 })
 
 
