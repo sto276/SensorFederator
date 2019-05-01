@@ -11,8 +11,9 @@ s <- getAuthorisedSensors()
 end_time <- Sys.time()
 end_time - start_time
 
-s <- getAuthorisedSensors(usr = 'Bob', pwd = 'JWEJTOhwCuH8sQEKD2ft4KAPg')
+s <- getAuthorisedSensors(usr = 'Public', pwd = 'Public')
 
+sensorInfo <- s
 
 
 
@@ -114,7 +115,7 @@ endDate='2018-01-04T23:59:59'
 
 
 urlData <- paste0('https://www.outpostcentral.com', '/api/2.0/dataservice/mydata.aspx?userName=',  'yoliver', '&password=', 'export',
-                  '&dateFrom=1/Dec/2017%2000:00:00&dateTo=', isoEDate, '&outpostID=', 'op12253', '&inputID=', '245004')
+                  '&dateFrom=1/Dec/2017%2000:00:00&dateTo=', '3/Dec/2017%2000:00:00', '&outpostID=', 'op12253', '&inputID=', '245004')
 dataXML <- getURL(urlData, .opts = myOpts , .encoding = 'UTF-8-BOM')
 cat(dataXML, file='c:/temp/outpost.xml')
 
@@ -137,6 +138,15 @@ dygraph(d , main = paste0('Tet'))  #%>%
 
 
 
+urlData <- paste0('https://www.outpostcentral.com', '/api/2.0/dataservice/mydata.aspx?userName=',  'EPARF', '&password=', 'EPARF',
+                  '&dateFrom=1/Dec/2017%2000:00:00&dateTo=', '3/Dec/2017%2000:00:00', '&outpostID=', 'op15376', '&inputID=', '456114')
+dataXML <- getURL(urlData, .opts = myOpts , .encoding = 'UTF-8-BOM')
+cat(dataXML, file='c:/temp/outpost.xml')
+
+xmlObj=xmlParse(dataXML, useInternalNodes = TRUE)
+
+
+
 
 ####   Outpost USQ
 
@@ -153,11 +163,13 @@ aggregSeconds=timeSteps$day
 startDate <- '2018-01-01T00:00:00'
 endDate='2018-01-04T23:59:59'
 
-startDate <- '2018-01-01T09:00:00'
-endDate='2018-01-04T08:59:59'
+sDate <- '1/Jan/2019%2000:00:00'
+eDate='20/Mar/2019%2000:00:00'
+
 
 urlData <- paste0('https://www.outpostcentral.com', '/api/2.0/dataservice/mydata.aspx?userName=',  usr, '&password=', pwd,
-                  '&dateFrom=1/Jan/2018%2000:00:00&dateTo=', '12/Sep/2018%2000:00:00', '&outpostID=', siteID, '&inputID=', sensorID)
+                  '&dateFrom=', sDate, '&dateTo=', eDate, '&outpostID=', siteID, '&inputID=', sensorID)
+
 response <- getURL(urlData, .opts = myOpts , .encoding = 'UTF-8-BOM')
 #xml_view(dataXML)
 cat(response, file='c:/temp/outpost.xml')
@@ -171,6 +183,15 @@ ns <- structure(sapply(nsDefs, function(x) x$uri), names = names(nsDefs))
 vals <- as.numeric(xpathSApply(doc ,"//opdata:sites/opdata:site/opdata:inputs/opdata:input/opdata:records/opdata:record/value", xmlValue, ns))
 tail(vals, 10)
 sum(vals)
+dts <- xpathSApply(doc ,"//opdata:sites/opdata:site/opdata:inputs/opdata:input/opdata:records/opdata:record/date", xmlValue, ns)
+
+
+dfo <- data.frame(dts, vals, stringsAsFactors = F)
+tail(dfo)
+
+
+startDate <- '2019-01-01T00:00:00'
+endDate='2019-03-20T23:59:59'
 
 rawv <- getSensorData(streams=streams, aggPeriod=timeSteps$days, startDate=startDate, endDate=endDate )
 head(rawv)
@@ -187,6 +208,44 @@ plot(daysv)
 
 
 dygraph(daysv) %>% dyRangeSelector()
+
+
+
+
+
+####   Outpost EPARF
+
+
+usr <- 'EPARF'
+pwd <- 'EPARF'
+siteID <- 'op30345'
+sensorID <- '774289'
+
+sensors <- sensorInfo[sensorInfo$SiteID == siteID & sensorInfo$DataType == 'Rainfall', ]
+streams=sensors
+backEnd='OutPost'
+aggregSeconds=timeSteps$day
+startDate <- '2018-01-01T00:00:00'
+endDate='2018-01-04T23:59:59'
+
+startDate <- '2018-01-01T09:00:00'
+endDate='2018-01-04T08:59:59'
+
+urlData <- paste0('https://www.outpostcentral.com', '/api/2.0/dataservice/mydata.aspx?userName=',  usr, '&password=', pwd,
+                  '&dateFrom=1/Jan/2019%2000:00:00&dateTo=', '2/Jan/2019%2000:00:00', '&outpostID=', siteID, '&inputID=', sensorID)
+response <- getURL(urlData, .opts = myOpts , .encoding = 'UTF-8-BOM')
+#xml_view(dataXML)
+cat(response, file='c:/temp/outpost.xml')
+
+xmlObj=xmlParse(response, useInternalNodes = TRUE)
+doc <- xmlRoot(xmlObj)
+nsDefs <- xmlNamespaceDefinitions(doc)
+ns <- structure(sapply(nsDefs, function(x) x$uri), names = names(nsDefs))
+
+
+vals <- as.numeric(xpathSApply(doc ,"//opdata:sites/opdata:site/opdata:inputs/opdata:input/opdata:records/opdata:record/value", xmlValue, ns))
+tail(vals, 10)
+sum(vals)
 
 
 
@@ -414,4 +473,37 @@ write.csv(to.DF(d), 'c:/temp/ts.csv')
 
 
 
+
+
+###############    SenFedDataStore   ########################################
+
+
+
+dtype <- 'Soil-Moisture'
+sd <- '2001-12-01T00:00:00'
+ed <- '2002-12-29T04:00:00'
+
+sensorInfo <- getAuthorisedSensors()
+#sensors <- sensorInfo[sensorInfo$SiteID == site & sensorInfo$DataType == 'Rainfall', ]
+sensors <- sensorInfo[sensorInfo$SiteID == site & sensorInfo$DataType == 'Soil-Moisture', ]
+#sensors <- sensorInfo[sensorInfo$SiteID == site, ]
+streams <- sensors
+
+site <-'m1'
+getData_SenFedStore(sid=site, datatype = dtype, sdate = sd, edate = ed )
+
+site <- 'OzNet_m1'
+d <- getSensorData_SenFedStore(streams = sensors, startDate = sd, endDate = ed)
+tail(d[[1]])
+
+
+
+
+
+getSensorLocations(latitude=-27.5347, longitude=151.9316, radius_km=1000.0, usr='SoilWaterApp',pwd='rLR4ArUomkODEpAgaDae4Ak')
+SoilWaterApp&pwd=rLR4ArUomkODEpAgaDae4Ak
+
+
+
+https://esoil.io/SensorFederationWebAPI/SensorAPI/getSensorLocations?latitude=-27.5347&longitude=151.9316&radius_km=1000.0&sensortype=Rainfall&usr=SoilWaterApp&pwd=rLR4ArUomkODEpAgaDae4Ak
 

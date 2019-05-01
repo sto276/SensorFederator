@@ -351,9 +351,7 @@ resampleTS_old <- function(inTS, aggPeriod=timeSteps$day, ftype=timeAggMethods$m
 
 getEmptySensorDF <- function(){
 
-  sensorDF <- data.frame( SiteID = character(), SiteName = character(), Provider = character(), Organisation = character(),
-                          Backend = character(), Access = character(), Usr = character(), pwd = character(),
-                          Latitude = numeric(), Longitude=numeric(), serverName=character(), SensorID = character(),
+  sensorDF <- data.frame( SiteID = character(), Active = logical(), SensorID = character(),
                           sensorName = character(), StartDate = character(), EndDate = character(), DataType = character(),
                           UpperDepth = numeric(), LowerDepth = numeric(), Calibrated = logical(), Units = character(), stringsAsFactors = F )
 

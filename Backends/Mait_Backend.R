@@ -20,13 +20,13 @@ mait_GenerateTimeSeries <- function(response, streams, retType = 'df'){
 
   ddf <- ddf[-1,]
   feats <- streams$SensorName
-  head(ddf)
+  #head(ddf)
 
   if(nrow(ddf) == 0){
     (stop('No records were returned for the specified query'))
   }
 
-  dts <-  as.POSIXct(ddf$DateTime)
+  dts <-  as.POSIXct(ddf$DateTime, format = "%d/%m/%Y %H:%M" )
 
   outList <-   vector("list", length(feats) )
   for(i in 1:length(feats)){
@@ -36,7 +36,7 @@ mait_GenerateTimeSeries <- function(response, streams, retType = 'df'){
     outList[[i]] <- ndf
   }
 
-  print(str(outList))
+  #print(str(outList))
   return (outList)
 
 }

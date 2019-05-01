@@ -12,6 +12,7 @@ library(stringr)
 library(raster)
 
 source('C:/Users/sea084/Dropbox/RossRCode/Git/SensorFederator/Backends/Backends.R')
+source('C:/Users/sea084/Dropbox/RossRCode/Git/SensorFederator/Backends/Backend_Config.R')
 
 myOpts <- curlOptions(connecttimeout = 2000, ssl.verifypeer = FALSE)
 
@@ -52,6 +53,23 @@ generateSensorInfo_OutPost(providerInfo, rootDir)
 vc(paste0(rootDir, '/SensorInfo/', providerInfo$provider, '_SensorsAll.csv'))
 
 
+
+
+
+
+
+#####  EPARF
+rootDir = 'C:/Users/sea084/Dropbox/RossRCode/Git/SensorFederator'
+
+providerInfo = list( provider= c('EPARF '), backEnd=c('OutPost'), server=c('https://www.outpostcentral.com'), org=c('EPARF '),
+                     usr=c('EPARF'), pwd=c('EPARF'),
+                     access = c('Public'),
+                     contact=c('David Freebairn'), orgURL=c('http://outpostcentral.com/'))
+
+generateSiteInfo_OutPost(providerInfo, rootDir)
+generateSensorInfo_OutPost(providerInfo, rootDir)
+
+vc(paste0(rootDir, '/SensorInfo/', providerInfo$provider, '_SensorsAll.csv'))
 
 
 

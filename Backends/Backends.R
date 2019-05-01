@@ -89,10 +89,16 @@ getSensorData <- function(streams, startDate = NULL, endDate = NULL, aggPeriod=t
         dfTS <- getSensorData_Mait(streams=streams, startDate=isoSDate, endDate = isoEDate, aggPeriod=aggPeriod, numrecs=numrecs )
       }else if(backEnd == 'DataFarmer') {
         dfTS <- getSensorData_DataFarmer(streams=streams, startDate=isoSDate, endDate = isoEDate, aggPeriod=aggPeriod, numrecs=numrecs )
+      }else if(backEnd == 'SenFedStore') {
+        dfTS <- getSensorData_SenFedStore(streams=streams, startDate=isoSDate, endDate = isoEDate, aggPeriod=aggPeriod, numrecs=numrecs )
       }
 
 
 # Transform the repsonse as requested
+
+     # dfTS <- dataStreamsDF
+
+
 
       dfTSm <- mergedfTSList(dfTS, streams = streams)
 
@@ -133,6 +139,39 @@ getSensorData <- function(streams, startDate = NULL, endDate = NULL, aggPeriod=t
 
   )
 
+}
+
+
+
+
+getSensorData_SenFedStore <- function(streams, startDate = NULL, endDate = NULL, aggPeriod=timeSteps$day, numrecs=maxRecs ){
+
+
+ # isoSDate <- as.Date(startDate, format = "%Y-%m-%d")
+# isoEDate <- as.Date(endDate, format = "%Y-%m-%d")
+
+  # sd <- as.POSIXct(startDate, format="%Y-%m-%d %H:%M:%S")
+  # ed <- as.POSIXct(endDate, format="%Y-%m-%d %H:%M:%S")
+
+  sd <- str_replace(startDate, 'T', ' ')
+  ed <- str_replace(endDate, 'T', ' ')
+  dtype <- streams$DataType[1]
+  site <- str_split(streams$SiteID[1], '_')[[1]][2]
+  dataStreamsDF <- list(nrow(streams))
+
+   for (i in 1:nrow(streams)) {
+    dataStreamsDF[[i]] <- getData_SenFedStore(sid=site, datatype = dtype, sensorID = streams$SensorID[i], sdate = sd, edate = ed )
+  }
+
+  # tryCatch({
+  #   dataStreamsDF <-  getData_SenFedStore
+  #   #dataStreamsDF <- synchronise(async_map( urls,  getURLAsync_Mait, .limit = asyncThreadNum ))
+  # }, error = function(e)
+  # {
+  #   stop('No records were returned for the specified query. Most likely there is no data available in the date range specified - (async processing error)')
+  # })
+
+  return(dataStreamsDF)
 }
 
 
@@ -184,8 +223,6 @@ getSensorData_Mait <- function(streams, startDate = NULL, endDate = NULL, aggPer
 
   return(dataStreamsDF)
 }
-
-
 
 
 
@@ -340,15 +377,17 @@ getSensorLocations <- function(usr='Public', pwd='Public', siteID=NULL, sensorTy
 
  outDF <- data.frame(df1$SiteID,df1$SiteName, df1$SensorGroup, df1$Backend, df1$Access,
                      df1$Longitude, df1$Latitude, df1$Active, df1$Owner, df1$Contact,
-                     df1$ProviderURL, df1$Description, df1$StartDate, df1$EndDate)
+                     df1$ProviderURL,df1$NetworkInfoWebsite, df1$Description, df1$StartDate, df1$EndDate, stringsAsFactors = F)
  colnames(outDF) <- c('SiteID','SiteName','SensorGroup','Backend','Access','Longitude','Latitude',
-                     'Active','Owner','Contact','ProviderURL','Description','StartDate','EndDate')
-
+                     'Active','Owner','Contact','ProviderURL','NetworkInfoWebsite', 'Description','StartDate','EndDate')
+ outDF[is.na(outDF)] <-"NA"
+ 
  if(nrow(outDF) == 0){
    stop("No sensors could be found : getSensorLocations")
  }
 
 
+ ########   Spatial Filtering ############################
  if(!is.null(bbox)){
    qtype = 'bbox'
  }else if (!is.null(longitude) & !is.null(latitude)){
@@ -408,6 +447,7 @@ getSensorInfo <-  function(usr='Public', pwd='Public', siteID=NULL, sensorType=N
 
   drops <- c("Usr","Pwd")
   outDF <-  sensors[ , !(names(sensors) %in% drops)]
+  outDF[is.na(outDF)] <-"NA"
 
   return(outDF)
 }
@@ -440,36 +480,38 @@ getSensorDataStreams <-  function(usr='Public', pwd='Public', siteID=NULL, senso
 
 plotSensorLocationsImage <- function(DF){
 
+  #coordinates(DF) <- ~Longitude+Latitude
 
-  coordinates(DF) <- ~Longitude+Latitude
+  # scale.parameter = 1  # scaling paramter. less than 1 is zooming in, more than 1 zooming out.
+  # xshift = -0.1  # Shift to right in map units.
+  # yshift = 0.2  # Shift to left in map units.
+  # original.bbox = austBdy@bbox  # Pass bbox of your Spatial* Object.
+  # 
+  # edges = original.bbox
+  # edges[1, ] <- (edges[1, ] - mean(edges[1, ])) * scale.parameter + mean(edges[1,]) + xshift
+  # edges[2, ] <- (edges[2, ] - mean(edges[2, ])) * scale.parameter + mean(edges[2,]) + yshift
+  # 
+  # rbPal <- colorRampPalette(c('red','blue'))
+  # 
+  # Col <- rbPal( length(knownBackends))
+  # levels <- knownBackends
+  # rv = list("sp.polygons", austBdy, fill = "grey")
+  # spp <- spplot(as.factor(DF["Backend"]), sp.layout = list(rv), key.space = "bottom", main = "Sensor Locations", xlim = edges[1, ], ylim = edges[2, ])
 
+ #return(spp)
+  
   pPath <- paste0(sensorRootDir, '/AncillaryData/Aust.shp')
-  austBdy <- readShapeFile(pPath)
-
-  scale.parameter = 1  # scaling paramter. less than 1 is zooming in, more than 1 zooming out.
-  xshift = -0.1  # Shift to right in map units.
-  yshift = 0.2  # Shift to left in map units.
-  original.bbox = austBdy@bbox  # Pass bbox of your Spatial* Object.
-
-  # Just copy-paste the following
-  edges = original.bbox
-
-  edges[1, ] <- (edges[1, ] - mean(edges[1, ])) * scale.parameter + mean(edges[1,]) + xshift
-  edges[2, ] <- (edges[2, ] - mean(edges[2, ])) * scale.parameter + mean(edges[2,]) + yshift
-
-
-
-  rbPal <- colorRampPalette(c('red','blue'))
-
-  Col <- rbPal( length(knownBackends))
-  levels <- knownBackends
-  #legend("topleft", fill = Col, legend = levels, col = Col)
-
-  rv = list("sp.polygons", austBdy, fill = "grey")
-
-  spp <-  spplot(DF["Backend"], sp.layout = list(rv), key.space = "bottom", main = "Sensor Locations", xlim = edges[1, ], ylim = edges[2, ])
-
- return(spp)
+  austBdy <- read_sf(pPath)
+  meuse_sf = st_as_sf(DF, coords = c("Longitude", "Latitude"), crs = 4326, agr = "constant")
+  
+  bkd <-  as.numeric(unique(as.factor(meuse_sf$Backend )))
+  palt <-brewer.pal(length(bkd),"Set1")
+  
+  par(mar=c(0,0,0,0))
+  plot(st_geometry(austBdy), border='black', reset=FALSE, col='beige')
+  
+  plot(meuse_sf[4], pch=20, add=T, pal=palt  )
+  legend("topleft", legend=levels(as.factor(meuse_sf$Backend )),fill=palt )
 
 }
 

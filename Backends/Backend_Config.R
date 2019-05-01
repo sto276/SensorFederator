@@ -17,6 +17,8 @@ library(xml2)
 library(htmlTable)
 library(DBI)
 library(RSQLite)
+library(RColorBrewer)
+library(sf)
 
 debugMode <- F
 
@@ -45,12 +47,10 @@ if(machineName == 'FANCY-DP'){
 }
 
 
-dbPath <- paste0(sensorRootDir, "/DB/SensorFederator.sqlite")
-
-knownBackends <- c('SensorCloud', 'Adcon', 'OutPost', 'Cosmoz', 'DAFWA', 'Mait', 'DataFarmer')
-knownFeatures <- c('Soil-Moisture', 'Rainfall', 'Humidity', 'Temperature', 'Wind-Direction', 'Wind-Speed')
 timeAggMethods <- data.frame(mean='mean', sum='sum', min='min', max='max', none='none', stringsAsFactors = F)
-FeatureAggTypes <-c(timeAggMethods$mean, timeAggMethods$sum, timeAggMethods$mean, timeAggMethods$mean, timeAggMethods$mean, timeAggMethods$mean)
+knownBackends <- c('SensorCloud', 'Adcon', 'OutPost', 'Cosmoz', 'DAFWA', 'Mait', 'DataFarmer', 'SenFedStore')
+knownFeatures <- c('Soil-Moisture', 'Soil-Temperature', 'Rainfall', 'Humidity', 'Temperature', 'Wind-Direction', 'Wind-Speed', 'Atmospheric Pressure', 'Vapour-Pressure', 'Dew-Point', 'Delta T', 'Suction')
+FeatureAggTypes <-c(timeAggMethods$mean, timeAggMethods$mean, timeAggMethods$sum, timeAggMethods$mean, timeAggMethods$mean, timeAggMethods$mean, timeAggMethods$mean, timeAggMethods$mean, timeAggMethods$mean, timeAggMethods$mean, timeAggMethods$mean, timeAggMethods$mean)
 names(FeatureAggTypes) <- knownFeatures
 
 timeSteps <- data.frame(none='none', minutes='minutes', hours='hours', days='days', weeks='weeks', months='months', quarters='quarters', years='years', stringsAsFactors = F)
@@ -62,10 +62,24 @@ apiFormats <- data.frame(simpleTS='simpleTS', nestedTS='nestedTS', stringsAsFact
 
 
 
-
+defaultStartTime <- '09:00:00'
 asyncThreadNum = 10
 maxRecs = '1000000'
 globalTimeOut = 200
+
+
+
+
+
+dbPath <- paste0(sensorRootDir, "/DB/SensorFederator.sqlite")
+
+
+#dbPath <- paste0(sensorRootDir, "/DB/SensorFederator.sqlite")
+senFedDbPath <- paste0('C:/Temp/ozNetDB.db')
+
+
+
+
 
 
 source(paste0(functionsRootDir,'/GeneralUtils.R'))
@@ -79,6 +93,7 @@ source(paste0(sensorRootDir, '/Backends/Cosmoz_Backend.R'))
 source(paste0(sensorRootDir, '/Backends/DAFWA_Backend.R'))
 source(paste0(sensorRootDir, '/Backends/Mait_Backend.R'))
 source(paste0(sensorRootDir, '/Backends/DataFarmer_Backend.R'))
+source(paste0(sensorRootDir, '/Backends/SensFedStore_Backend.R'))
 source(paste0(sensorRootDir, '/Backends/Backends.R'))
 source(paste0(sensorRootDir, '/Backends/Authorisation.R'))
 
@@ -87,16 +102,7 @@ source(paste0(sensorRootDir, '/Backends/Authorisation.R'))
 
 
 
-DBCon <- dbConnect(RSQLite::SQLite(), dbPath, flags = SQLITE_RO)
-fk_On <- 'PRAGMA foreign_keys = ON;'
-dbExecute(DBCon, fk_On)
 
-#sitesInfo <- read.csv(paste0(sensorRootDir, '/SensorInfo/AllSites.csv'), stringsAsFactors = F)
-#allSensorInfo <- read.csv(paste0(sensorRootDir, '/SensorInfo/AllSensors.csv'), stringsAsFactors = F)
-#sensorInfo <- allSensorInfo[allSensorInfo$Active,]
-
-
-defaultStartTime <- '09:00:00'
 
 
 

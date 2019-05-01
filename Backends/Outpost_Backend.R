@@ -10,6 +10,7 @@ generateSiteInfo_OutPost <- function(providerInfo, rootDir){
   xmlObj=xmlParse(dataXML, useInternalNodes = TRUE)
   #xml_view(dataXML)
 
+  saveXML()
   # dataXML <- readLines('C:/Temp/outpost1.xml', encoding = 'UTF-8-BOM')
   # xmlObj=xmlParse(dataXML, useInternalNodes = TRUE)
 
@@ -17,6 +18,10 @@ generateSiteInfo_OutPost <- function(providerInfo, rootDir){
   nsDefs <- xmlNamespaceDefinitions(doc)
   ns <- structure(sapply(nsDefs, function(x) x$uri), names = names(nsDefs))
 
+
+
+
+  #saveXML(doc = doc, file='C:/Temp/outpost1.xml',)
   #sites <- xpathSApply(doc ,"//opdata:sites/opdata:site/name", xmlValue, ns)
 
   siteName <- xpathSApply(doc ,"//opdata:sites/opdata:site/name", xmlValue, ns)
