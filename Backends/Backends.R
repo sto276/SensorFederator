@@ -96,6 +96,9 @@ out <- tryCatch(
       else if(backEnd == 'SenFedStore') {
         dfTS <- getSensorData_SenFedStore(streams=streams, startDate=isoSDate, endDate = isoEDate, aggPeriod=aggPeriod, numrecs=numrecs )
       }
+      else if(backEnd == 'SILO') {
+        dfTS <- getSensorData_SILO(streams=streams, startDate=isoSDate, endDate = isoEDate, aggPeriod=aggPeriod, numrecs=numrecs )
+      }
 
 # Transform the repsonse as requested
      # dfTS <- dataStreamsDF
@@ -359,6 +362,39 @@ getSensorData_Outpost <- function(
   return(dataStreamsDF)
 }
 
+getSensorData_SILO <- function(
+  streams,
+  startDate = NULL,
+  endDate = NULL,
+  aggPeriod=timeSteps$day,
+  numrecs=maxRecs
+)
+{
+  urls <- paste0( streams$ServerName,
+                  '/rest/station/',
+                  siteid,
+                  '/records?processing_level=4',
+                  '&startdate=',
+                  startDate,
+                  'Z&enddate=',
+                  endDate ,
+                  'Z&property_filter=',
+                  filt,
+                  '&count=',
+                  format(numrecs, scientific = FALSE),
+                  '&offset=0')
+
+
+  tryCatch({
+    dataStreamsDF <- synchronise(async_map( urls,  getURLAsync_SILO, .limit = asyncThreadNum ))
+
+  }, error = function(e)
+  {
+    stop('No records were returned for the specified query. Most likely there is no data available in the date range specified - (async processing error)')
+  })
+  return(dataStreamsDF)
+}
+
 getSensorFields <- function(){
   return (colnames(sensorInfo))
 }
@@ -568,5 +604,3 @@ plotSensorLocationsImage <- function(DF){
   plot(meuse_sf[4], pch=20, add=T, pal=palt  )
   legend("topleft", legend=levels(as.factor(meuse_sf$Backend )),fill=palt )
 }
-
-
