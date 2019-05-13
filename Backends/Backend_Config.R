@@ -1,6 +1,4 @@
-
 # This script is at the top level of the infrsstructure - it needs to be sourced for other stuff to work
-
 
 library(RCurl)
 library(jsonlite)
@@ -46,7 +44,6 @@ if(machineName == 'FANCY-DP'){
   functionsRootDir <<- 'C:/Users/sea084/Dropbox/RossRCode/myFunctions'
 }
 
-
 timeAggMethods <- data.frame(mean='mean', sum='sum', min='min', max='max', none='none', stringsAsFactors = F)
 knownBackends <- c('SensorCloud', 'Adcon', 'OutPost', 'Cosmoz', 'DAFWA', 'Mait', 'DataFarmer', 'SenFedStore')
 knownFeatures <- c('Soil-Moisture', 'Soil-Temperature', 'Rainfall', 'Humidity', 'Temperature', 'Wind-Direction', 'Wind-Speed', 'Atmospheric Pressure', 'Vapour-Pressure', 'Dew-Point', 'Delta T', 'Suction')
@@ -59,29 +56,14 @@ timeStepDurations <- data.frame(none=0, minutes=60, hours=3600, days=86400, week
 
 apiFormats <- data.frame(simpleTS='simpleTS', nestedTS='nestedTS', stringsAsFactors = F)
 
-
-
-
 defaultStartTime <- '09:00:00'
 asyncThreadNum = 10
 maxRecs = '1000000'
 globalTimeOut = 200
 
-
-
-
-
 dbPath <- paste0(sensorRootDir, "/DB/SensorFederator.sqlite")
 
-
-#dbPath <- paste0(sensorRootDir, "/DB/SensorFederator.sqlite")
 senFedDbPath <- paste0('C:/Temp/ozNetDB.db')
-
-
-
-
-
-
 source(paste0(functionsRootDir,'/GeneralUtils.R'))
 source(paste0(functionsRootDir,'/VectorUtils.R'))
 source(paste0(sensorRootDir, '/Backends/RequestChecks.R'))
