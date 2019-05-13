@@ -1,4 +1,4 @@
-# This script is at the top level of the infrsstructure - it needs to be sourced for other stuff to work
+# This script is at the top level of the infrastructure - it needs to be sourced for other stuff to work
 
 library(RCurl)
 library(jsonlite)
@@ -20,64 +20,103 @@ library(sf)
 
 debugMode <- F
 
-machineName <- as.character(Sys.info()['nodename'])
-print(machineName)
-if(machineName == 'FANCY-DP'){
-  rootDir <<- 'C:/Users/sea084/Dropbox/RossRCode/Git/Shiny/SMIPS'
-  sensorRootDir <<- 'C:/Users/sea084/Dropbox/RossRCode/Git/SensorFederator'
-  functionsRootDir <<- 'C:/Users/sea084/Dropbox/RossRCode/myFunctions'
-}else if (machineName == 'soils-discovery' & debugMode == T) {
-  rootDir <<- '/home/sea084/R/SMIPS'
-  sensorRootDir <<- '/home/sea084/R/SensorBackends'
-  functionsRootDir <<- '/home/sea084/R/myFunctions'
-}else if (machineName == 'soils-discovery' & debugMode == F) {
-  rootDir <<- '/srv/shiny-server/SMIPS'
-  sensorRootDir <<- '/srv/plumber/SensorFederator'
-  functionsRootDir <<- '/srv/plumber/Functions'
-}else if (machineName == 'TERNSOILS') {
-  rootDir <<- 'C:/Users/sea084/Dropbox/RossRCode/Git/Shiny/SMIPS'
-  sensorRootDir <<- 'C:/Users/sea084/Dropbox/RossRCode/Git/SensorFederator'
-  functionsRootDir <<- 'C:/Users/sea084/Dropbox/RossRCode/myFunctions'
-}else{
-  rootDir <<- 'C:/Users/sea084/Dropbox/RossRCode/Git/Shiny/SMIPS'
-  sensorRootDir <<- 'C:/Users/sea084/Dropbox/RossRCode/Git/SensorFederator'
-  functionsRootDir <<- 'C:/Users/sea084/Dropbox/RossRCode/myFunctions'
-}
+rootDir <<- 'C:/Users/sea084/Dropbox/RossRCode/Git/Shiny/SMIPS'
+functionsRootDir <<- 'C:/Users/sea084/Dropbox/RossRCode/myFunctions'
 
-timeAggMethods <- data.frame(mean='mean', sum='sum', min='min', max='max', none='none', stringsAsFactors = F)
-knownBackends <- c('SensorCloud', 'Adcon', 'OutPost', 'Cosmoz', 'DAFWA', 'Mait', 'DataFarmer', 'SenFedStore')
-knownFeatures <- c('Soil-Moisture', 'Soil-Temperature', 'Rainfall', 'Humidity', 'Temperature', 'Wind-Direction', 'Wind-Speed', 'Atmospheric Pressure', 'Vapour-Pressure', 'Dew-Point', 'Delta T', 'Suction')
-FeatureAggTypes <-c(timeAggMethods$mean, timeAggMethods$mean, timeAggMethods$sum, timeAggMethods$mean, timeAggMethods$mean, timeAggMethods$mean, timeAggMethods$mean, timeAggMethods$mean, timeAggMethods$mean, timeAggMethods$mean, timeAggMethods$mean, timeAggMethods$mean)
+timeAggMethods <- data.frame(mean = 'mean',
+                             sum = 'sum',
+                             min = 'min',
+                             max = 'max',
+                             none = 'none',
+                             stringsAsFactors = F)
+
+# List of known data sources
+knownBackends <- c('SensorCloud',
+                   'Adcon',
+                   'OutPost',
+                   'Cosmoz',
+                   'DAFWA',
+                   'Mait',
+                   'DataFarmer',
+                   'SenFedStore')
+
+# List of possible data that can be accessed
+knownFeatures <- c('Soil-Moisture',
+                   'Soil-Temperature',
+                   'Rainfall',
+                   'Humidity',
+                   'Temperature',
+                   'Wind-Direction',
+                   'Wind-Speed',
+                   'Atmospheric Pressure',
+                   'Vapour-Pressure',
+                   'Dew-Point',
+                   'Delta T',
+                   'Suction')
+
+FeatureAggTypes <-c(timeAggMethods$mean,
+                    timeAggMethods$mean,
+                    timeAggMethods$sum,
+                    timeAggMethods$mean,
+                    timeAggMethods$mean,
+                    timeAggMethods$mean,
+                    timeAggMethods$mean,
+                    timeAggMethods$mean,
+                    timeAggMethods$mean,
+                    timeAggMethods$mean,
+                    timeAggMethods$mean,
+                    timeAggMethods$mean)
+
 names(FeatureAggTypes) <- knownFeatures
 
-timeSteps <- data.frame(none='none', minutes='minutes', hours='hours', days='days', weeks='weeks', months='months', quarters='quarters', years='years', stringsAsFactors = F)
-timeStepDurations <- data.frame(none=0, minutes=60, hours=3600, days=86400, weeks=604800, months=2592000, quarters=7948800, years=31536000, stringsAsFactors = F)
+# Time scales
+timeSteps <- data.frame(none = 'none',
+                        minutes ='minutes',
+                        hours = 'hours',
+                        days = 'days',
+                        weeks = 'weeks',
+                        months ='months',
+                        quarters ='quarters',
+                        years = 'years',
+                        stringsAsFactors = F)
 
+# Length of time steps in seconds
+timeStepDurations <- data.frame(none = 0,
+                                minutes = 60,
+                                hours = 3600,
+                                days = 86400,
+                                weeks = 604800,
+                                months = 2592000,
+                                quarters = 7948800,
+                                years = 31536000,
+                                stringsAsFactors = F)
 
-apiFormats <- data.frame(simpleTS='simpleTS', nestedTS='nestedTS', stringsAsFactors = F)
+apiFormats <- data.frame(simpleTS = 'simpleTS',
+                         nestedTS = 'nestedTS',
+                         stringsAsFactors = F)
 
 defaultStartTime <- '09:00:00'
 asyncThreadNum = 10
 maxRecs = '1000000'
 globalTimeOut = 200
 
-dbPath <- paste0(sensorRootDir, "/DB/SensorFederator.sqlite")
+dbPath <- "DB/SensorFederator.sqlite"
 
 senFedDbPath <- paste0('C:/Temp/ozNetDB.db')
 source(paste0(functionsRootDir,'/GeneralUtils.R'))
 source(paste0(functionsRootDir,'/VectorUtils.R'))
-source(paste0(sensorRootDir, '/Backends/RequestChecks.R'))
-source(paste0(sensorRootDir, '/Backends/Backend_Utils.R'))
-source(paste0(sensorRootDir, '/Backends/Adcon_Backend.R'))
-source(paste0(sensorRootDir, '/Backends/Outpost_Backend.R'))
-source(paste0(sensorRootDir, '/Backends/SensorCloud_Backend.R'))
-source(paste0(sensorRootDir, '/Backends/Cosmoz_Backend.R'))
-source(paste0(sensorRootDir, '/Backends/DAFWA_Backend.R'))
-source(paste0(sensorRootDir, '/Backends/Mait_Backend.R'))
-source(paste0(sensorRootDir, '/Backends/DataFarmer_Backend.R'))
-source(paste0(sensorRootDir, '/Backends/SensFedStore_Backend.R'))
-source(paste0(sensorRootDir, '/Backends/Backends.R'))
-source(paste0(sensorRootDir, '/Backends/Authorisation.R'))
+source('Backends/RequestChecks.R')
+source('Backends/Backend_Utils.R')
+source('Backends/Adcon_Backend.R')
+source('Backends/Outpost_Backend.R')
+source('Backends/SensorCloud_Backend.R')
+source('Backends/Cosmoz_Backend.R')
+source('Backends/DAFWA_Backend.R')
+source('Backends/Mait_Backend.R')
+source('Backends/DataFarmer_Backend.R')
+source('Backends/SensFedStore_Backend.R')
+source('Backends/Backends.R')
+source('Backends/Authorisation.R')
 
 
 

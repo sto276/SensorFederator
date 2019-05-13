@@ -8,13 +8,13 @@
 # Last Updated : 27/7/2018
 
 
-#The info below sets out the steps you need to code to implement an 'Adapter' into the SensorFederation environment 
-# The Cosmoz backend is a good simple example of implementing an 'Adapter' into the SensorFederation environment 
+#The info below sets out the steps you need to code to implement an 'Adapter' into the SensorFederation environment
+# The Cosmoz backend is a good simple example of implementing an 'Adapter' into the SensorFederation environment
 
 # in this workflow 'BackendName' refers to the name of the new Adapter you are creating
 
 
-# Add Metadata  for sensors into the main config files using scripting specific to the situation. 2 shell functions are provided
+# Add Metadata for sensors into the main config files using scripting specific to the situation. 2 shell functions are provided
 # and should be coded as required to generate the metadata in the required format for the config files
 # put this setup work in a file called 'BackendName_Admin.R for testing and dev puposes.
 
@@ -71,15 +71,15 @@ generateSensorInfo_BackendName <- function( providerInfo, rootDir){
 }
 
 getURLAsync_BackendName <- function(x){
-  
+
   # This function handles sending of asynch requests to the native API endpoints and waits for all responses to be returned
 }
 
 
 BackendName_GenerateTimeSeries <- function(response, retType = 'df'){
-  
+
   # This function generates the xts or df return object from the native response from the API being queried
-  
+
   # Basically return a 'Date', 'Value' key pair
   # Value is numeric
   # Date is  dtring with this format '2016-04-19 09:30:00'

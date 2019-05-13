@@ -1,28 +1,56 @@
-
-
-
-
-generateSiteInfo_Cosmoz <- function(providerInfo, rootDir){
-
+generateSiteInfo_Cosmoz <- function(
+  providerInfo,
+  rootDir
+)
+{
   stnsRaw <- getURL(paste0('http://cosmoz.csiro.au/rest/stations?count=100&offset=0'))
   stns <- gsub("\r?\n|\r", " ", stnsRaw)
   stnsJ <- fromJSON(stns)
 
-  locs <- data.frame(paste0('Cosmoz_', stnsJ$stations$site_no), stnsJ$stations$site_name,providerInfo$provider,providerInfo$backEnd, providerInfo$access, providerInfo$usr, providerInfo$pwd, stnsJ$stations$latitude, stnsJ$stations$longitude, T, providerInfo$org, providerInfo$email, providerInfo$server, str_replace_all(stnsJ$stations$site_description, ',', ' ') , stringsAsFactors = F)
-  colnames(locs) <- c('SiteID', 'SiteName', 'Provider', 'Backend', 'Access', 'Usr', 'Pwd', 'Latitude', 'Longitude', 'Active', 'Owner', 'Contact', 'ProviderURL', 'Description')
+  locs <- data.frame(paste0('Cosmoz_', stnsJ$stations$site_no),
+                     stnsJ$stations$site_name,
+                     providerInfo$provider,
+                     providerInfo$backEnd,
+                     providerInfo$access,
+                     providerInfo$usr,
+                     providerInfo$pwd,
+                     stnsJ$stations$latitude,
+                     stnsJ$stations$longitude,
+                     T,
+                     providerInfo$org,
+                     providerInfo$email,
+                     providerInfo$server,
+                     str_replace_all(stnsJ$stations$site_description, ',', ' '),
+                     stringsAsFactors = F)
+
+  colnames(locs) <- c('SiteID',
+                      'SiteName',
+                      'Provider',
+                      'Backend',
+                      'Access',
+                      'Usr',
+                      'Pwd',
+                      'Latitude',
+                      'Longitude',
+                      'Active',
+                      'Owner',
+                      'Contact',
+                      'ProviderURL',
+                      'Description')
+
   locs <- na.omit(locs)
 
   outName <- paste0(rootDir, '/SensorInfo/', providerInfo$provider, '_Sites.csv')
   write.csv(locs, outName, row.names = F, quote = F)
   cat(paste0('Site info for ', providerInfo$provider, ' written to ',  outName, '\n'))
   vc(outName)
-
 }
 
-
-
-generateSensorInfo_Cosmoz <- function( providerInfo, rootDir){
-
+generateSensorInfo_Cosmoz <- function(
+  providerInfo,
+  rootDir
+)
+{
   stnsRaw <- getURL(paste0('http://cosmoz.csiro.au/rest/stations?count=100&offset=0'))
   stns <- gsub("\r?\n|\r", " ", stnsRaw)
   stnsJ <- fromJSON(stns)
@@ -48,24 +76,23 @@ generateSensorInfo_Cosmoz <- function( providerInfo, rootDir){
   vc(outName)
 }
 
-
-
-
-getURLAsync_Cosmoz <- function(x){
-
+getURLAsync_Cosmoz <- function(
+  x
+)
+{
   response <- getURL(x)
   ndf<- cosmoz_GenerateTimeSeries(response, retType = 'df')
   return(ndf)
 }
 
-
-cosmoz_GenerateTimeSeries <- function(response, retType = 'df'){
-
-
+cosmoz_GenerateTimeSeries <- function(
+  response,
+  retType = 'df')
+{
   tsj <- fromJSON(response, flatten=T)
   if(tsj$count == 0){
       (stop('No records were returned for the specified query'))
-    }
+  }
   dts <- str_replace(tsj$observations[,1], 'T', ' ')
   dts2 <- str_replace(dts, 'Z', '')
   vals <- tsj$observations[,2]
@@ -73,12 +100,13 @@ cosmoz_GenerateTimeSeries <- function(response, retType = 'df'){
   if(retType == 'xts'){
     tz <- xts(as.numeric(vals), order.by = dts2)
     return (tz)
-  }else if(retType == 'df'){
+  }
+  else if(retType == 'df'){
     ndf <- data.frame(dts2, vals)
     colnames(ndf)<- c('theDate', 'Values')
     return(ndf)
-
-  }else{
+  }
+  else{
     stop(cat(retType, 'is an unkown data return type. Options are', paste(knownAdconReturnTypes, collapse=',' )), call. = F)
   }
 }
