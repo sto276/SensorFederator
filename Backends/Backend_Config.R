@@ -1,5 +1,4 @@
 # This script is at the top level of the infrastructure - it needs to be sourced for other stuff to work
-
 library(RCurl)
 library(jsonlite)
 library(stringr)
@@ -18,10 +17,22 @@ library(RSQLite)
 library(RColorBrewer)
 library(sf)
 
-debugMode <- F
+source('Utilities/GeneralUtils.R')
+source('Utilities/VectorUtils.R')
+source('Backends/RequestChecks.R')
+source('Backends/Backend_Utils.R')
+source('Backends/Adcon_Backend.R')
+source('Backends/Outpost_Backend.R')
+source('Backends/SensorCloud_Backend.R')
+source('Backends/Cosmoz_Backend.R')
+source('Backends/DAFWA_Backend.R')
+source('Backends/Mait_Backend.R')
+source('Backends/DataFarmer_Backend.R')
+source('Backends/SensFedStore_Backend.R')
+source('Backends/Backends.R')
+source('Backends/Authorisation.R')
 
-rootDir <<- 'C:/Users/sea084/Dropbox/RossRCode/Git/Shiny/SMIPS'
-functionsRootDir <<- 'C:/Users/sea084/Dropbox/RossRCode/myFunctions'
+debugMode <- F
 
 timeAggMethods <- data.frame(mean = 'mean',
                              sum = 'sum',
@@ -100,23 +111,10 @@ asyncThreadNum = 10
 maxRecs = '1000000'
 globalTimeOut = 200
 
-dbPath <- "DB/SensorFederator.sqlite"
+dbPath <- 'DB/SensorFederator.sqlite'
+senFedDbPath <- 'BackebdAdmin/OzNet/ozNetDB.db'
 
-senFedDbPath <- paste0('C:/Temp/ozNetDB.db')
-source(paste0(functionsRootDir,'/GeneralUtils.R'))
-source(paste0(functionsRootDir,'/VectorUtils.R'))
-source('Backends/RequestChecks.R')
-source('Backends/Backend_Utils.R')
-source('Backends/Adcon_Backend.R')
-source('Backends/Outpost_Backend.R')
-source('Backends/SensorCloud_Backend.R')
-source('Backends/Cosmoz_Backend.R')
-source('Backends/DAFWA_Backend.R')
-source('Backends/Mait_Backend.R')
-source('Backends/DataFarmer_Backend.R')
-source('Backends/SensFedStore_Backend.R')
-source('Backends/Backends.R')
-source('Backends/Authorisation.R')
+
 
 
 
